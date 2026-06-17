@@ -1,12 +1,8 @@
 import { PrismaClient } from "../src/generated/prisma";
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
-import * as mariadb from "mariadb";
 
-const adapter = new PrismaMariaDb(process.env.DATABASE_URL as string);
-
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding database...");
