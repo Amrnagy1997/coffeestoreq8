@@ -6,7 +6,6 @@ import prisma from "@/lib/prisma";
 import { SlidersHorizontal } from "lucide-react";
 import SearchInput from "./SearchInput";
 import CategoryFilter from "./CategoryFilter";
-import ProductTypeFilter from "./ProductTypeFilter";
 import { Suspense } from "react";
 
 async function getProducts(searchParams: { [key: string]: string | string[] | undefined }) {
@@ -82,12 +81,8 @@ export default async function ProductsPage({
             </div>
           </div>
 
-          {/* Type Toggle & Categories Bar */}
+          {/* Categories Bar */}
           <div className="flex flex-col gap-2">
-            <Suspense fallback={<div className="w-48 h-12 bg-gray-100 rounded-2xl animate-pulse mb-8" />}>
-              <ProductTypeFilter />
-            </Suspense>
-            
             <Suspense fallback={<div className="flex gap-2 overflow-x-auto pb-4 mb-10"><div className="w-24 h-10 bg-gray-100 rounded-full animate-pulse" /></div>}>
               <CategoryFilter categories={categories} />
             </Suspense>

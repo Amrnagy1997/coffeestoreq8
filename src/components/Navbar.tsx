@@ -27,7 +27,7 @@ export const Navbar = () => {
   const navLinks = [
     { name: "Home", href: "/" },
     { name: "Shop", href: "/products" },
-    { name: "Categories", href: "/categories" },
+    { name: "Pre-order", href: "/pre-order", highlight: true },
     { name: "About", href: "/about" },
   ];
 
@@ -61,13 +61,24 @@ export const Navbar = () => {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium hover:text-primary transition-colors"
-            >
-              {link.name}
-            </Link>
+            link.highlight ? (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm font-bold text-amber-500 border border-amber-400 px-3 py-1 rounded-full hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors flex items-center gap-1"
+              >
+                <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                {link.name}
+              </Link>
+            ) : (
+              <Link
+                key={link.name}
+                href={link.href}
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                {link.name}
+              </Link>
+            )
           ))}
         </div>
 
@@ -130,14 +141,26 @@ export const Navbar = () => {
         <div className="md:hidden absolute top-full left-0 right-0 glass shadow-2xl animate-in slide-in-from-top duration-300">
           <div className="flex flex-col p-6 gap-4">
             {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-lg font-medium p-2"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.name}
-              </Link>
+              link.highlight ? (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-lg font-bold text-amber-500 p-2 flex items-center gap-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                  {link.name}
+                </Link>
+              ) : (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="text-lg font-medium p-2"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              )
             ))}
             {!session && (
               <Link
