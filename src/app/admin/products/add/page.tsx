@@ -8,7 +8,8 @@ import {
   X, 
   Save, 
   Loader2, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Plus
 } from "lucide-react";
 import Link from "next/link";
 
