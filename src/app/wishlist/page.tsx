@@ -34,7 +34,8 @@ export default function WishlistPage() {
                     name: item.name,
                     price: item.price,
                     images: [item.image],
-                    category: "Saved"
+                    category: "Saved",
+                    isPreOrder: false
                   }} 
                 />
               ))}
