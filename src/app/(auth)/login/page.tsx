@@ -29,7 +29,13 @@ export default function LoginPage() {
       if (res?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/");
+        const { getSession } = await import("next-auth/react");
+        const session = await getSession();
+        if (session?.user && (session.user as any).role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
         router.refresh();
       }
     } catch (err) {

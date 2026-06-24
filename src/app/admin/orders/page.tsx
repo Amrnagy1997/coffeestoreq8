@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Search
 } from "lucide-react";
+import { OrderStatusUpdater } from "@/components/OrderStatusUpdater";
 
 async function getOrders() {
   try {
@@ -97,9 +98,7 @@ export default async function AdminOrdersPage() {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-8 py-5 text-right">
-                    <button className="bg-gray-100 dark:bg-zinc-800 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">
-                      Update
-                    </button>
+                    <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
                   </td>
                 </tr>
               )) : (

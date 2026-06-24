@@ -1,34 +1,61 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
-  Upload, 
-  X, 
-  Save, 
-  Loader2, 
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import {
+  ArrowLeft,
+  X,
+  Save,
+  Loader2,
   Image as ImageIcon,
-  Plus
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 
-export default function AddProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const params = useParams<{ id: string }>();
+  const id = params.id;
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [imageInput, setImageInput] = useState("");
-  
+
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: "",
     category: "Core Collection",
-    stock: "10",
+    stock: "0",
     featured: false,
     isPreOrder: false,
     sku: "",
   });
+
+  useEffect(() => {
+    if (!id) return;
+    fetch(`/api/products/${id}`)
+      .then((res) => res.json())
+      .then((product) => {
+        setFormData({
+          name: product.name,
+          description: product.description,
+          price: String(product.price),
+          category: product.category,
+          stock: String(product.stock),
+          featured: product.featured,
+          isPreOrder: product.isPreOrder,
+          sku: product.sku || "",
+        });
+        setImages(product.images || []);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        alert("Failed to load product");
+        router.push("/admin/products");
+      });
+  }, [id, router]);
 
   const handleAddImage = () => {
     if (imageInput && images.length < 4) {
@@ -48,11 +75,11 @@ export default function AddProductPage() {
       return;
     }
 
-    setIsLoading(true);
+    setIsSaving(true);
 
     try {
-      const res = await fetch("/api/products", {
-        method: "POST",
+      const res = await fetch(`/api/products/${id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
@@ -67,29 +94,40 @@ export default function AddProductPage() {
         router.refresh();
       } else {
         const data = await res.json();
-        alert(data.message || "Failed to add product");
+        alert(data.message || "Failed to update product");
       }
-    } catch (err) {
+    } catch {
       alert("Something went wrong");
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 max-w-4xl">
       <div className="flex items-center gap-4">
-        <Link href="/admin/products" className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+        <Link
+          href="/admin/products"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+        >
           <ArrowLeft size={24} />
         </Link>
         <div>
-          <h1 className="text-3xl font-outfit font-bold">Add New Product</h1>
-          <p className="text-gray-500 mt-1">Fill in the details to list a new product.</p>
+          <h1 className="text-3xl font-outfit font-bold">Edit Product</h1>
+          <p className="text-gray-500 mt-1">Update the product information below.</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left Column: Form Info */}
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-premium space-y-6">
             <div className="space-y-2">
@@ -100,7 +138,6 @@ export default function AddProductPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
-                placeholder="e.g. Japan Sakura 2024 Edition"
               />
             </div>
 
@@ -112,7 +149,6 @@ export default function AddProductPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
-                placeholder="Detailed description of the product, materials, and origin..."
               />
             </div>
 
@@ -126,7 +162,6 @@ export default function AddProductPage() {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="0.00"
                 />
               </div>
               <div className="space-y-2">
@@ -137,7 +172,6 @@ export default function AddProductPage() {
                   value={formData.stock}
                   onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="10"
                 />
               </div>
             </div>
@@ -166,11 +200,10 @@ export default function AddProductPage() {
                   value={formData.sku}
                   onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="SBUX-MUG-001"
                 />
               </div>
             </div>
-            
+
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <input
@@ -180,7 +213,9 @@ export default function AddProductPage() {
                   onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
                   className="w-5 h-5 accent-primary"
                 />
-                <label htmlFor="featured" className="text-sm font-bold cursor-pointer">Show on Featured Homepage</label>
+                <label htmlFor="featured" className="text-sm font-bold cursor-pointer">
+                  Show on Featured Homepage
+                </label>
               </div>
               <div className="flex items-center gap-3">
                 <input
@@ -190,7 +225,9 @@ export default function AddProductPage() {
                   onChange={(e) => setFormData({ ...formData, isPreOrder: e.target.checked })}
                   className="w-5 h-5 accent-primary"
                 />
-                <label htmlFor="isPreOrder" className="text-sm font-bold cursor-pointer">Mark as Pre-Order / Collection Item</label>
+                <label htmlFor="isPreOrder" className="text-sm font-bold cursor-pointer">
+                  Mark as Pre-Order
+                </label>
               </div>
             </div>
           </div>
@@ -200,10 +237,13 @@ export default function AddProductPage() {
         <div className="space-y-8">
           <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-premium space-y-6">
             <h3 className="font-bold text-lg">Product Images</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {images.map((img, index) => (
-                <div key={index} className="relative aspect-square bg-gray-50 dark:bg-zinc-800 rounded-2xl overflow-hidden group">
+                <div
+                  key={index}
+                  className="relative aspect-square bg-gray-50 dark:bg-zinc-800 rounded-2xl overflow-hidden group"
+                >
                   <img src={img} alt="Product" className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -231,6 +271,7 @@ export default function AddProductPage() {
                   onChange={(e) => setImageInput(e.target.value)}
                   className="flex-grow bg-gray-50 dark:bg-zinc-800 border-none rounded-xl py-3 px-4 focus:ring-1 focus:ring-primary outline-none transition-all text-sm"
                   placeholder="https://example.com/mug.jpg"
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddImage())}
                 />
                 <button
                   type="button"
@@ -279,15 +320,15 @@ export default function AddProductPage() {
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSaving}
             className="w-full bg-primary text-white font-bold py-5 rounded-[2rem] flex items-center justify-center gap-2 hover:bg-primary-dark transition-premium shadow-lg shadow-primary/20 disabled:opacity-70"
           >
-            {isLoading ? (
+            {isSaving ? (
               <Loader2 className="animate-spin" size={24} />
             ) : (
               <>
                 <Save size={24} />
-                Save Product
+                Save Changes
               </>
             )}
           </button>

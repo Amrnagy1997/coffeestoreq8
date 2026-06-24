@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import { ArrowRight, Coffee, ShieldCheck, Truck } from "lucide-react";
+import { ArrowRight, ShieldCheck, Truck, Coffee } from "lucide-react";
 import prisma from "@/lib/prisma";
 
 async function getFeaturedProducts() {
@@ -89,11 +89,15 @@ export default async function Home() {
             
             <div className="relative aspect-square w-full max-w-[500px] mx-auto lg:mx-0">
                <div className="absolute inset-0 bg-primary/20 rounded-[20%] rotate-6 scale-95 z-0" />
-               <div className="absolute inset-0 bg-white dark:bg-zinc-800 rounded-[20%] -rotate-3 shadow-2xl z-10 overflow-hidden border border-primary/10">
-                 {/* This would be an image generated or a real image */}
-                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-light to-white dark:from-primary-dark dark:to-zinc-800">
-                    <Coffee size={120} className="text-primary animate-bounce opacity-50" />
-                 </div>
+               <div className="absolute inset-0 rounded-[20%] -rotate-3 shadow-2xl z-10 overflow-hidden border border-primary/10">
+                 <Image
+                   src="/hero-mugs.jpg"
+                   alt="Premium Coffee Store Q8 Mug Collection"
+                   fill
+                   sizes="(max-width: 1024px) 100vw, 500px"
+                   className="object-cover"
+                   priority
+                 />
                </div>
             </div>
           </div>
