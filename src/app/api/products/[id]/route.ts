@@ -38,6 +38,11 @@ export async function PUT(
     const { id } = await params;
     const { images, ...body } = await req.json();
 
+    // Map empty SKU to null to avoid duplicate unique key error
+    if (body.sku === "" || (typeof body.sku === "string" && body.sku.trim() === "")) {
+      body.sku = null;
+    }
+
     // Delete old images and create new ones
     await prisma.productImage.deleteMany({ where: { productId: id } });
 

@@ -46,6 +46,11 @@ export async function POST(req: Request) {
 
     const { images, ...body } = await req.json();
 
+    // Map empty SKU to null to avoid duplicate unique key error
+    if (body.sku === "" || (typeof body.sku === "string" && body.sku.trim() === "")) {
+      body.sku = null;
+    }
+
     const newProduct = await prisma.product.create({
       data: {
         ...body,

@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+
+export const dynamic = "force-dynamic";
 import { Plus, Search, MoreVertical, Edit2, ExternalLink } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";

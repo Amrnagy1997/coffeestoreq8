@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
+
+export const dynamic = "force-dynamic";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import prisma from "@/lib/prisma";

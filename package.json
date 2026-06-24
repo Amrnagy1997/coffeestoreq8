@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node domains/coffeestoreq8.com/nodejs/server.js",
     "lint": "eslint",
     "postinstall": "prisma generate"
   },

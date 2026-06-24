@@ -1,5 +1,7 @@
 import React from "react";
 import prisma from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import { formatPrice } from "@/lib/utils";
 import { 
   ShoppingBag, 
