@@ -11,7 +11,7 @@ export async function GET(
     const { id } = await params;
     const product = await prisma.product.findUnique({
       where: { id },
-      include: { images: true },
+      include: { images: true, variants: true },
     });
     if (!product) {
       return NextResponse.json({ message: "Product not found" }, { status: 404 });
@@ -36,7 +36,7 @@ export async function PUT(
     }
 
     const { id } = await params;
-    const { images, ...body } = await req.json();
+    const { images, variants, ...body } = await req.json();
 
     // Map empty SKU to null to avoid duplicate unique key error
     if (body.sku === "" || (typeof body.sku === "string" && body.sku.trim() === "")) {
@@ -46,6 +46,9 @@ export async function PUT(
     // Delete old images and create new ones
     await prisma.productImage.deleteMany({ where: { productId: id } });
 
+    // Delete old variants and create new ones
+    await prisma.productVariant.deleteMany({ where: { productId: id } });
+
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
@@ -53,8 +56,20 @@ export async function PUT(
         images: {
           create: images.map((url: string) => ({ url })),
         },
+        ...(variants && variants.length > 0
+          ? {
+              variants: {
+                create: variants.map((v: { name: string; price: number; image: string; stock: number }) => ({
+                  name: v.name,
+                  price: v.price,
+                  image: v.image,
+                  stock: v.stock || 0,
+                })),
+              },
+            }
+          : {}),
       },
-      include: { images: true },
+      include: { images: true, variants: true },
     });
 
     return NextResponse.json(updatedProduct);

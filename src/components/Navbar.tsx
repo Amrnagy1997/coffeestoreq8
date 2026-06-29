@@ -35,18 +35,16 @@ export const Navbar = () => {
     <nav
       className={cn(
         "fixed top-0 left-0 right-0 z-50 transition-premium px-6 py-4",
-        isScrolled
-          ? "glass shadow-premium py-3"
-          : "bg-transparent"
+        isScrolled ? "glass shadow-premium py-3" : "bg-transparent",
       )}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex items-center justify-center">
-            <Image 
-              src="/logo.png" 
-              alt="CoffeeStore Q8" 
+            <Image
+              src="/logo.jpg"
+              alt="CoffeeStore Q8"
               width={48}
               height={48}
               className="object-contain"
@@ -60,7 +58,7 @@ export const Navbar = () => {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
+          {navLinks.map((link) =>
             link.highlight ? (
               <Link
                 key={link.name}
@@ -78,8 +76,8 @@ export const Navbar = () => {
               >
                 {link.name}
               </Link>
-            )
-          ))}
+            ),
+          )}
         </div>
 
         {/* Icons */}
@@ -87,8 +85,11 @@ export const Navbar = () => {
           <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
             <Search size={20} />
           </button>
-          
-          <Link href="/wishlist" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors hidden sm:block">
+
+          <Link
+            href="/wishlist"
+            className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors hidden sm:block"
+          >
             <Heart size={20} />
             {wishlistCount > 0 && (
               <span className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
@@ -96,8 +97,11 @@ export const Navbar = () => {
               </span>
             )}
           </Link>
-          
-          <Link href="/cart" className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+
+          <Link
+            href="/cart"
+            className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
             <ShoppingBag size={20} />
             {cartCount > 0 && (
               <span className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full">
@@ -109,7 +113,10 @@ export const Navbar = () => {
           <div className="h-6 w-[1px] bg-gray-200 dark:bg-gray-700 hidden sm:block" />
 
           {session ? (
-            <Link href="/profile" className="flex items-center gap-2 p-1 pl-1 pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 p-1 pl-1 pr-3 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+            >
               <div className="w-8 h-8 bg-primary-light rounded-full flex items-center justify-center">
                 <User size={18} className="text-primary" />
               </div>
@@ -140,7 +147,7 @@ export const Navbar = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 glass shadow-2xl animate-in slide-in-from-top duration-300">
           <div className="flex flex-col p-6 gap-4">
-            {navLinks.map((link) => (
+            {navLinks.map((link) =>
               link.highlight ? (
                 <Link
                   key={link.name}
@@ -160,8 +167,8 @@ export const Navbar = () => {
                 >
                   {link.name}
                 </Link>
-              )
-            ))}
+              ),
+            )}
             {!session && (
               <Link
                 href="/login"

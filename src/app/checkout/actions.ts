@@ -13,6 +13,8 @@ export async function createOrder(data: {
     name: string;
     quantity: number;
     price: number;
+    variantId?: string;
+    variantName?: string;
   }[];
   instagramMessage: string;
 }) {
@@ -32,6 +34,8 @@ export async function createOrder(data: {
             name: item.name,
             quantity: item.quantity,
             price: item.price,
+            variantId: item.variantId || null,
+            variantName: item.variantName || null,
           })),
         },
       },

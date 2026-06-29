@@ -19,7 +19,7 @@ export async function GET(req: Request) {
 
     const products = await prisma.product.findMany({
       where,
-      include: { images: true },
+      include: { images: true, variants: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       // return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const { images, ...body } = await req.json();
+    const { images, variants, ...body } = await req.json();
 
     // Map empty SKU to null to avoid duplicate unique key error
     if (body.sku === "" || (typeof body.sku === "string" && body.sku.trim() === "")) {
@@ -57,8 +57,20 @@ export async function POST(req: Request) {
         images: {
           create: images.map((url: string) => ({ url })),
         },
+        ...(variants && variants.length > 0
+          ? {
+              variants: {
+                create: variants.map((v: { name: string; price: number; image: string; stock: number }) => ({
+                  name: v.name,
+                  price: v.price,
+                  image: v.image,
+                  stock: v.stock || 0,
+                })),
+              },
+            }
+          : {}),
       },
-      include: { images: true },
+      include: { images: true, variants: true },
     });
 
     return NextResponse.json(newProduct, { status: 201 });

@@ -70,7 +70,9 @@ export default function CheckoutPage() {
             productId: item.id || "unknown",
             name: item.name,
             quantity: item.quantity,
-            price: item.price
+            price: item.price,
+            variantId: item.variantId,
+            variantName: item.variantName
           };
         })
       });
@@ -238,7 +240,7 @@ export default function CheckoutPage() {
                    <div className="space-y-2">
                      <span className="text-sm text-gray-500 block mb-2">Products</span>
                      {cart.map(item => (
-                       <div key={item.id} className="flex justify-between text-sm">
+                       <div key={item.variantId ? `${item.id}__${item.variantId}` : item.id} className="flex justify-between text-sm">
                          <span>{item.name} (x{item.quantity})</span>
                          <span className="font-bold">{formatPrice(item.price * item.quantity)}</span>
                        </div>

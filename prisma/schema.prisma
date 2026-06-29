@@ -27,6 +27,7 @@ model Product {
   description String
   price       Float
   images      ProductImage[]
+  variants    ProductVariant[]
   category    String
   stock       Int      @default(0)
   featured    Boolean  @default(false)
@@ -41,6 +42,18 @@ model ProductImage {
   url       String
   productId String
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  name      String
+  price     Float
+  image     String   // Single image URL representing this variant
+  stock     Int      @default(0)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Order {
@@ -59,11 +72,13 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String
-  name      String
-  quantity  Int
-  price     Float
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  name        String
+  quantity    Int
+  price       Float
+  variantId   String?
+  variantName String?
 }

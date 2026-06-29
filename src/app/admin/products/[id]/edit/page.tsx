@@ -9,8 +9,18 @@ import {
   Loader2,
   Image as ImageIcon,
   Plus,
+  Upload,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+
+interface VariantRow {
+  name: string;
+  price: string;
+  stock: string;
+  image: string;
+  uploading: boolean;
+}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -21,6 +31,7 @@ export default function EditProductPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [imageInput, setImageInput] = useState("");
+  const [variants, setVariants] = useState<VariantRow[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,6 +60,18 @@ export default function EditProductPage() {
           sku: product.sku || "",
         });
         setImages(product.images || []);
+        // Load existing variants
+        if (product.variants && product.variants.length > 0) {
+          setVariants(
+            product.variants.map((v: any) => ({
+              name: v.name,
+              price: String(v.price),
+              stock: String(v.stock),
+              image: v.image,
+              uploading: false,
+            }))
+          );
+        }
         setIsLoading(false);
       })
       .catch(() => {
@@ -68,10 +91,49 @@ export default function EditProductPage() {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  // --- Variant Helpers ---
+  const addVariantRow = () => {
+    setVariants([...variants, { name: "", price: "", stock: "1", image: "", uploading: false }]);
+  };
+
+  const updateVariant = (index: number, field: keyof VariantRow, value: string | boolean) => {
+    setVariants(variants.map((v, i) => (i === index ? { ...v, [field]: value } : v)));
+  };
+
+  const removeVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const handleVariantImageUpload = async (index: number, file: File) => {
+    updateVariant(index, "uploading", true as any);
+    const uploadData = new FormData();
+    uploadData.append("file", file);
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: uploadData });
+      if (res.ok) {
+        const data = await res.json();
+        updateVariant(index, "image", data.url);
+      } else {
+        alert("Upload failed");
+      }
+    } catch {
+      alert("Upload error");
+    } finally {
+      setVariants(prev => prev.map((v, i) => i === index ? { ...v, uploading: false } : v));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (images.length === 0) {
-      alert("Please add at least one image URL");
+    if (images.length === 0 && variants.length === 0) {
+      alert("Please add at least one image or variant");
+      return;
+    }
+
+    // Validate variants
+    const validVariants = variants.filter(v => v.name.trim() && v.image);
+    if (variants.length > 0 && validVariants.length !== variants.length) {
+      alert("Please fill in name and upload an image for each variant");
       return;
     }
 
@@ -83,9 +145,15 @@ export default function EditProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          price: parseFloat(formData.price),
+          price: parseFloat(formData.price) || 0,
           stock: parseInt(formData.stock),
           images,
+          variants: validVariants.map(v => ({
+            name: v.name,
+            price: parseFloat(v.price) || 0,
+            stock: parseInt(v.stock) || 0,
+            image: v.image,
+          })),
         }),
       });
 
@@ -158,7 +226,7 @@ export default function EditProductPage() {
                 <input
                   type="number"
                   step="0.01"
-                  required
+                  required={variants.length === 0}
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   className="w-full bg-gray-50 dark:bg-zinc-800 border-none rounded-2xl py-4 px-6 focus:ring-2 focus:ring-primary outline-none transition-all"
@@ -229,6 +297,118 @@ export default function EditProductPage() {
                   Mark as Pre-Order
                 </label>
               </div>
+            </div>
+          </div>
+
+          {/* ===== VARIANTS SECTION ===== */}
+          <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] shadow-premium space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-lg">Product Variants / Options</h3>
+                <p className="text-gray-400 text-xs mt-1">Add individual items inside this collection, each with its own image and price.</p>
+              </div>
+              <button
+                type="button"
+                onClick={addVariantRow}
+                className="bg-primary/10 text-primary font-bold text-sm px-4 py-2 rounded-xl hover:bg-primary/20 transition-colors flex items-center gap-1.5"
+              >
+                <Plus size={16} /> Add Option
+              </button>
+            </div>
+
+            {variants.length === 0 && (
+              <div className="border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-2xl p-8 text-center text-gray-400">
+                <ImageIcon size={40} strokeWidth={1} className="mx-auto mb-3 opacity-50" />
+                <p className="text-sm font-medium">No variants yet</p>
+                <p className="text-xs mt-1">Click &quot;Add Option&quot; to create items inside this collection</p>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {variants.map((variant, index) => (
+                <div key={index} className="bg-gray-50 dark:bg-zinc-800 rounded-2xl p-5 space-y-4 relative group">
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(index)}
+                    className="absolute top-3 right-3 text-red-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+
+                  <div className="flex gap-4 items-start">
+                    {/* Variant Image Preview / Upload */}
+                    <div className="shrink-0">
+                      {variant.image ? (
+                        <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-200 dark:bg-zinc-700">
+                          <img src={variant.image} alt={variant.name} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => updateVariant(index, "image", "")}
+                            className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full p-0.5"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-600 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-primary hover:text-primary transition-colors">
+                          {variant.uploading ? (
+                            <Loader2 size={20} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Upload size={18} />
+                              <span className="text-[9px] mt-1">Upload</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleVariantImageUpload(index, file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Variant Fields */}
+                    <div className="flex-grow grid grid-cols-3 gap-3">
+                      <div className="col-span-3 sm:col-span-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Name</label>
+                        <input
+                          type="text"
+                          value={variant.name}
+                          onChange={(e) => updateVariant(index, "name", e.target.value)}
+                          className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                          placeholder="e.g. Black Cat Mug"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Price (KWD)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={variant.price}
+                          onChange={(e) => updateVariant(index, "price", e.target.value)}
+                          className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider ml-1">Stock</label>
+                        <input
+                          type="number"
+                          value={variant.stock}
+                          onChange={(e) => updateVariant(index, "stock", e.target.value)}
+                          className="w-full bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary outline-none"
+                          placeholder="1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
