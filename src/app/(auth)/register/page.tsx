@@ -47,11 +47,11 @@ export default function RegisterPage() {
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="flex items-center justify-center">
               <Image 
-                src="/logo.png" 
+                src="/logo.jpg" 
                 alt="CoffeeStore Q8" 
                 width={64}
                 height={64}
-                className="object-contain"
+                className="object-contain mix-blend-multiply dark:invert dark:mix-blend-screen"
                 priority
               />
             </div>

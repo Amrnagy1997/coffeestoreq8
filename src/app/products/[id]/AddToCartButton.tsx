@@ -32,12 +32,12 @@ export default function AddToCartButton({ product }: { product: any }) {
       {added ? (
         <>
           <Check size={20} />
-          Added to Cart
+          تمت الإضافة
         </>
       ) : (
         <>
           <ShoppingCart size={20} />
-          Add to Cart
+          أضف إلى العربة
         </>
       )}
     </button>

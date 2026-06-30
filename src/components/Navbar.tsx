@@ -43,11 +43,11 @@ export const Navbar = () => {
         <Link href="/" className="flex items-center gap-2">
           <div className="flex items-center justify-center">
             <Image
-              src="/logo.png"
+              src="/logo.jpg"
               alt="CoffeeStore Q8"
               width={48}
               height={48}
-              className="object-contain"
+              className="object-contain mix-blend-multiply dark:invert dark:mix-blend-screen"
               priority
             />
           </div>

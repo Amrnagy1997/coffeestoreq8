@@ -4,7 +4,7 @@ import { Navbar } from "@/components/Navbar";
 
 export const dynamic = "force-dynamic";
 import { Footer } from "@/components/Footer";
-import { ProductCard } from "@/components/ProductCard";
+import CollectionListClient from "./CollectionListClient";
 import prisma from "@/lib/prisma";
 import { ArrowLeft, CalendarClock } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -86,12 +86,8 @@ export default async function CollectionPage({
             </div>
           </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {data.products.map((product: any) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {/* Products List (Vertical Stack) */}
+          <CollectionListClient products={data.products as any} />
         </div>
       </main>
 

@@ -194,14 +194,12 @@ export default function ProductClient({ product }: ProductClientProps) {
               {added ? (
                 <>
                   <Check size={20} />
-                  Added to Cart
+                  تمت الإضافة
                 </>
               ) : (
                 <>
                   <ShoppingCart size={20} />
-                  {hasVariants && selectedVariant
-                    ? `Add "${selectedVariant.name}" to Cart`
-                    : "Add to Cart"}
+                  أضف إلى العربة
                 </>
               )}
             </button>
