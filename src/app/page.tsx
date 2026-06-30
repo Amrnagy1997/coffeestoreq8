@@ -67,12 +67,6 @@ export default async function Home() {
                   Shop Collection
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-                <Link 
-                  href="/categories/limited" 
-                  className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 px-8 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-premium"
-                >
-                  Limited Edition
-                </Link>
               </div>
 
               <div className="flex items-center gap-8 pt-4">

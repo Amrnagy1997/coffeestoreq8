@@ -45,9 +45,8 @@ export const Footer = () => {
           <h4 className="font-bold mb-6">Shop</h4>
           <ul className="space-y-4 text-sm text-gray-500">
             <li><Link href="/products" className="hover:text-primary transition-colors">All Products</Link></li>
-            <li><Link href="/categories/limited" className="hover:text-primary transition-colors">Limited Edition</Link></li>
-            <li><Link href="/categories/seasonal" className="hover:text-primary transition-colors">Seasonal</Link></li>
-            <li><Link href="/categories/core" className="hover:text-primary transition-colors">Core Collection</Link></li>
+            <li><Link href="/products?category=Seasonal" className="hover:text-primary transition-colors">Seasonal</Link></li>
+            <li><Link href="/products?category=Core%20Collection" className="hover:text-primary transition-colors">Core Collection</Link></li>
           </ul>
         </div>
 
