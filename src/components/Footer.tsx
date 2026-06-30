@@ -12,7 +12,7 @@ export const Footer = () => {
           <div className="flex items-center gap-2 mb-6">
             <div className="flex items-center justify-center">
               <Image 
-                src="/logo.png" 
+                src="/logo.jpg" 
                 alt="CoffeeStore Q8" 
                 width={40}
                 height={40}
