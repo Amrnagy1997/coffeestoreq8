@@ -28,6 +28,49 @@ if (process.env.NODE_ENV === "production") {
   } catch (err: any) {
     console.error("Prisma: Error loading .env file:", err.message);
   }
+
+  // Programmatic persistent uploads symlink creation
+  try {
+    const targetDir = path.join(process.cwd(), "..", "public_html", "uploads");
+    const symlinkPath = path.join(process.cwd(), "public", "uploads");
+
+    let needsSymlink = false;
+    try {
+      const lstat = fs.lstatSync(symlinkPath);
+      if (!lstat.isSymbolicLink()) {
+        needsSymlink = true;
+        if (lstat.isDirectory()) {
+          // Copy any new uploads to targetDir before removing the folder
+          const files = fs.readdirSync(symlinkPath);
+          files.forEach(file => {
+            const src = path.join(symlinkPath, file);
+            const dest = path.join(targetDir, file);
+            if (!fs.existsSync(dest)) {
+              fs.copyFileSync(src, dest);
+              console.log(`Prisma: Migrated local file to persistent uploads: ${file}`);
+            }
+          });
+          fs.rmSync(symlinkPath, { recursive: true, force: true });
+        }
+      }
+    } catch (e) {
+      needsSymlink = true;
+    }
+
+    if (needsSymlink) {
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
+      }
+      const symlinkParent = path.dirname(symlinkPath);
+      if (!fs.existsSync(symlinkParent)) {
+        fs.mkdirSync(symlinkParent, { recursive: true });
+      }
+      fs.symlinkSync(targetDir, symlinkPath, "dir");
+      console.log("Prisma: Created symbolic link for persistent uploads successfully.");
+    }
+  } catch (err: any) {
+    console.error("Prisma: Error setting up persistent uploads symlink:", err.message);
+  }
 }
 
 import { PrismaClient } from "../generated/prisma";
