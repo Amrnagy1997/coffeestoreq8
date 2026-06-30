@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Heart, Check } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { Heart } from "lucide-react";
 import { useWishlist } from "@/context/WishlistContext";
-import { formatPrice, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 interface Product {
@@ -20,30 +19,13 @@ interface Product {
 }
 
 export default function CollectionListClient({ products }: { products: Product[] }) {
-  const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const [addedItems, setAddedItems] = useState<{ [key: string]: boolean }>({});
-
-  const handleAdd = (product: Product) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images[0],
-      quantity: 1
-    });
-    setAddedItems(prev => ({ ...prev, [product.id]: true }));
-    setTimeout(() => {
-      setAddedItems(prev => ({ ...prev, [product.id]: false }));
-    }, 2000);
-  };
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto">
       {products.map((product, idx) => {
         const productId = product.id;
         const isWishlisted = isInWishlist(productId);
-        const isAdded = addedItems[productId] || false;
 
         const toggleWishlist = () => {
           if (isWishlisted) {
@@ -127,36 +109,6 @@ export default function CollectionListClient({ products }: { products: Product[]
                 <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                   {product.description}
                 </p>
-              </div>
-
-              {/* Price & Add to Cart */}
-              <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-50 dark:border-zinc-800/50">
-                <span className="text-primary font-bold text-2xl">
-                  {formatPrice(product.price)}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => handleAdd(product)}
-                  className={cn(
-                    "px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 transition-premium shadow-md shadow-primary/10",
-                    isAdded 
-                      ? "bg-green-500 text-white" 
-                      : "bg-primary hover:bg-primary-dark text-white"
-                  )}
-                >
-                  {isAdded ? (
-                    <>
-                      <Check size={16} />
-                      تمت الإضافة
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart size={16} />
-                      أضف إلى العربة
-                    </>
-                  )}
-                </button>
               </div>
             </div>
           </motion.div>
