@@ -20,7 +20,10 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    let uploadsDir = path.join(process.cwd(), "public", "uploads");
+    if (process.env.NODE_ENV === "production") {
+      uploadsDir = path.join(process.cwd(), "..", "public_html", "uploads");
+    }
     await mkdir(uploadsDir, { recursive: true });
 
     // Clean up filename to prevent path traversal and spaces
