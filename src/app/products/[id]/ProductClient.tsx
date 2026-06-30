@@ -159,7 +159,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                   </div>
                   {/* Variant Info */}
                   <div className="p-3 bg-white dark:bg-zinc-900 text-left">
-                    <p className="font-bold text-sm line-clamp-1">{variant.name}</p>
+                    <p className="font-bold text-sm leading-tight">{variant.name}</p>
                     <p className="text-primary font-bold text-sm mt-0.5">
                       {formatPrice(variant.price)}
                     </p>
