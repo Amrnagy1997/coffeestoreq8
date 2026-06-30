@@ -17,6 +17,11 @@ export async function GET(
       filePath = path.join("/home/u487607181/domains/coffeestoreq8.com/public_html/uploads", safeFilename);
     }
 
+    console.log("Serving upload:", filename);
+    console.log("Current working dir:", process.cwd());
+    console.log("Resolved filePath:", filePath);
+    console.log("File exists on disk:", fs.existsSync(filePath));
+
     if (!fs.existsSync(filePath)) {
       return new Response("Not Found", { status: 404 });
     }
