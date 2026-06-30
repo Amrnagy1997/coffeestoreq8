@@ -12,11 +12,11 @@ export const Footer = () => {
           <div className="flex items-center gap-2 mb-6">
             <div className="flex items-center justify-center">
               <Image 
-                src="/logo.jpg" 
+                src="/logo.png" 
                 alt="CoffeeStore Q8" 
                 width={40}
                 height={40}
-                className="object-contain mix-blend-multiply dark:invert dark:mix-blend-screen"
+                className="object-contain"
               />
             </div>
             <span className="font-outfit font-bold text-xl tracking-tight">
