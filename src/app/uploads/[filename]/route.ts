@@ -14,13 +14,8 @@ export async function GET(
     
     let filePath = path.join(process.cwd(), "public", "uploads", safeFilename);
     if (process.env.NODE_ENV === "production") {
-      filePath = path.join("/home/u487607181/domains/coffeestoreq8.com/public_html/uploads", safeFilename);
+      filePath = path.join("/home/u487607181/uploads", safeFilename);
     }
-
-    console.log("Serving upload:", filename);
-    console.log("Current working dir:", process.cwd());
-    console.log("Resolved filePath:", filePath);
-    console.log("File exists on disk:", fs.existsSync(filePath));
 
     if (!fs.existsSync(filePath)) {
       return new Response("Not Found", { status: 404 });

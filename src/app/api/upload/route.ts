@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     let uploadsDir = path.join(process.cwd(), "public", "uploads");
     if (process.env.NODE_ENV === "production") {
-      uploadsDir = path.join(process.cwd(), "..", "public_html", "uploads");
+      uploadsDir = "/home/u487607181/uploads";
     }
     await mkdir(uploadsDir, { recursive: true });
 
