@@ -29,47 +29,50 @@ if (process.env.NODE_ENV === "production") {
     console.error("Prisma: Error loading .env file:", err.message);
   }
 
-  // Programmatic persistent uploads symlink creation
-  try {
-    const targetDir = path.join(process.cwd(), "..", "public_html", "uploads");
-    const symlinkPath = path.join(process.cwd(), "public", "uploads");
-
-    let needsSymlink = false;
+  // Programmatic persistent uploads symlink creation (run only at runtime in nodejs folder)
+  const isHostingerRuntime = process.cwd().endsWith("nodejs");
+  if (isHostingerRuntime) {
     try {
-      const lstat = fs.lstatSync(symlinkPath);
-      if (!lstat.isSymbolicLink()) {
-        needsSymlink = true;
-        if (lstat.isDirectory()) {
-          // Copy any new uploads to targetDir before removing the folder
-          const files = fs.readdirSync(symlinkPath);
-          files.forEach(file => {
-            const src = path.join(symlinkPath, file);
-            const dest = path.join(targetDir, file);
-            if (!fs.existsSync(dest)) {
-              fs.copyFileSync(src, dest);
-              console.log(`Prisma: Migrated local file to persistent uploads: ${file}`);
-            }
-          });
-          fs.rmSync(symlinkPath, { recursive: true, force: true });
-        }
-      }
-    } catch (e) {
-      needsSymlink = true;
-    }
+      const targetDir = "/home/u487607181/domains/coffeestoreq8.com/public_html/uploads";
+      const symlinkPath = "/home/u487607181/domains/coffeestoreq8.com/nodejs/public/uploads";
 
-    if (needsSymlink) {
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
+      let needsSymlink = false;
+      try {
+        const lstat = fs.lstatSync(symlinkPath);
+        if (!lstat.isSymbolicLink()) {
+          needsSymlink = true;
+          if (lstat.isDirectory()) {
+            // Copy any new uploads to targetDir before removing the folder
+            const files = fs.readdirSync(symlinkPath);
+            files.forEach(file => {
+              const src = path.join(symlinkPath, file);
+              const dest = path.join(targetDir, file);
+              if (!fs.existsSync(dest)) {
+                fs.copyFileSync(src, dest);
+                console.log(`Prisma: Migrated local file to persistent uploads: ${file}`);
+              }
+            });
+            fs.rmSync(symlinkPath, { recursive: true, force: true });
+          }
+        }
+      } catch (e) {
+        needsSymlink = true;
       }
-      const symlinkParent = path.dirname(symlinkPath);
-      if (!fs.existsSync(symlinkParent)) {
-        fs.mkdirSync(symlinkParent, { recursive: true });
+
+      if (needsSymlink) {
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        const symlinkParent = path.dirname(symlinkPath);
+        if (!fs.existsSync(symlinkParent)) {
+          fs.mkdirSync(symlinkParent, { recursive: true });
+        }
+        fs.symlinkSync(targetDir, symlinkPath, "dir");
+        console.log("Prisma: Created symbolic link for persistent uploads successfully.");
       }
-      fs.symlinkSync(targetDir, symlinkPath, "dir");
-      console.log("Prisma: Created symbolic link for persistent uploads successfully.");
+    } catch (err: any) {
+      console.error("Prisma: Error setting up persistent uploads symlink:", err.message);
     }
-  } catch (err: any) {
-    console.error("Prisma: Error setting up persistent uploads symlink:", err.message);
   }
 }
 
