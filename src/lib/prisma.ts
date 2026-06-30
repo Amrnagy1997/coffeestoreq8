@@ -4,7 +4,10 @@ import path from "path";
 // Programmatic .env loader for Hostinger/production standalone server
 if (process.env.NODE_ENV === "production") {
   try {
-    const envPath = path.join(process.cwd(), ".env");
+    let envPath = path.join(process.cwd(), ".env");
+    if (!fs.existsSync(envPath)) {
+      envPath = path.join(process.cwd(), "..", ".env");
+    }
     if (fs.existsSync(envPath)) {
       const envConfig = fs.readFileSync(envPath, "utf-8");
       envConfig.split("\n").forEach((line) => {
