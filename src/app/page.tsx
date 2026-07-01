@@ -64,22 +64,16 @@ export default async function Home() {
                   href="/products" 
                   className="bg-primary text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-primary-dark transition-premium shadow-lg shadow-primary/20 group"
                 >
-                  Shop Collection
+                  In Stock
                   <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
-              </div>
-
-              <div className="flex items-center gap-8 pt-4">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-zinc-900 bg-gray-200 overflow-hidden relative">
-                       <div className="absolute inset-0 bg-primary/20" />
-                    </div>
-                  ))}
-                </div>
-                <p className="text-sm font-medium text-gray-500">
-                  <span className="font-bold text-black dark:text-white">2.5k+</span> Collectors already joined
-                </p>
+                <Link 
+                  href="/pre-order" 
+                  className="bg-transparent border-2 border-primary text-primary px-8 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-primary hover:text-white transition-premium group"
+                >
+                  Pre-Order
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
             </div>
             
