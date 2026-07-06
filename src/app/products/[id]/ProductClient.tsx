@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useCurrency } from "@/context/CurrencyContext";
-import { ShoppingCart, Check, Heart } from "lucide-react";
+import { ShoppingCart, Check, Heart, Minus, Plus } from "lucide-react";
 
 interface Variant {
   id: string;
@@ -35,6 +35,14 @@ export default function ProductClient({ product }: ProductClientProps) {
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
     hasVariants ? product.variants[0] : null
   );
+  const [quantity, setQuantity] = useState(1);
+
+  // Reset quantity to 1 when selected variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
+
+  const maxStock = selectedVariant ? selectedVariant.stock : product.stock;
 
   // Current displayed image & price depend on selected variant
   const displayImage = selectedVariant
@@ -48,13 +56,16 @@ export default function ProductClient({ product }: ProductClientProps) {
     : product.name;
 
   const handleAdd = () => {
+    const finalQty = Math.min(quantity, maxStock);
+    if (finalQty <= 0) return;
+
     addToCart({
       id: product._id,
       name: displayName,
       price: displayPrice,
       image: displayImage,
-      quantity: 1,
-      stock: selectedVariant ? selectedVariant.stock : product.stock ?? 999,
+      quantity: finalQty,
+      stock: maxStock ?? 999,
       ...(selectedVariant
         ? { variantId: selectedVariant.id, variantName: selectedVariant.name }
         : {}),
@@ -183,11 +194,34 @@ export default function ProductClient({ product }: ProductClientProps) {
         )}
 
         <div className="pt-6 border-t border-gray-100 dark:border-zinc-800">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 items-center">
+            {/* Quantity Selector */}
+            {maxStock > 0 && (
+              <div className="flex items-center gap-4 bg-gray-100 dark:bg-zinc-800 px-4 py-3 rounded-2xl border border-gray-200/40 dark:border-zinc-700 shadow-sm shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                  disabled={quantity <= 1}
+                  className="p-1 hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="font-bold text-base w-6 text-center select-none">{quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantity(prev => Math.min(maxStock, prev + 1))}
+                  disabled={quantity >= maxStock}
+                  className="p-1 hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            )}
+
             <button
               onClick={handleAdd}
-              disabled={selectedVariant ? selectedVariant.stock === 0 : product.stock === 0}
-              className={`flex-[2] py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-premium shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed ${
+              disabled={maxStock === 0}
+              className={`flex-[2] py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-premium shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto ${
                 added
                   ? "bg-green-500 text-white"
                   : "bg-primary text-white hover:bg-primary-dark"
@@ -198,7 +232,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                   <Check size={20} />
                   تمت الإضافة
                 </>
-              ) : (selectedVariant ? selectedVariant.stock === 0 : product.stock === 0) ? (
+              ) : maxStock === 0 ? (
                 <>
                   نفذت الكمية
                 </>
@@ -209,11 +243,16 @@ export default function ProductClient({ product }: ProductClientProps) {
                 </>
               )}
             </button>
-            <button className="flex-1 border border-gray-200 dark:border-zinc-800 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-premium">
+            <button className="flex-1 border border-gray-200 dark:border-zinc-800 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-premium w-full sm:w-auto">
               <Heart size={20} />
               Wishlist
             </button>
           </div>
+          {quantity >= maxStock && maxStock > 0 && (
+            <p className="text-xs text-amber-500 font-bold mt-2 text-left select-none">
+              لقد وصلت للحد الأقصى المتاح في الاستوك ({maxStock})
+            </p>
+          )}
         </div>
       </div>
     </div>
