@@ -8,6 +8,7 @@ import { ShoppingBag, User, Search, Menu, X, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { cn } from "@/lib/utils";
+import CurrencySelector from "./CurrencySelector";
 
 export const Navbar = () => {
   const { data: session } = useSession();
@@ -82,6 +83,7 @@ export const Navbar = () => {
 
         {/* Icons */}
         <div className="flex items-center gap-5">
+          <CurrencySelector className="hidden md:block" />
           <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
             <Search size={20} />
           </button>
@@ -178,6 +180,7 @@ export const Navbar = () => {
                 Sign In
               </Link>
             )}
+            <CurrencySelector isMobile={true} />
           </div>
         </div>
       )}

@@ -5,7 +5,8 @@ import Image from "next/image";
 import { ShoppingCart, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { formatPrice, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useCurrency } from "@/context/CurrencyContext";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -17,12 +18,14 @@ interface ProductCardProps {
     images: string[];
     category: string;
     isPreOrder: boolean;
+    stock?: number;
   };
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { formatPrice } = useCurrency();
   
   // Handle both _id (from my mapping) and id (from Prisma default)
   const productId = product._id || (product as any).id;
@@ -77,9 +80,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               name: product.name,
               price: product.price,
               image: product.images[0],
-              quantity: 1
+              quantity: 1,
+              stock: product.stock ?? 999
             })}
-            className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-dark transition-colors"
+            disabled={product.stock === 0}
+            className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingCart size={18} />
           </button>
@@ -113,6 +118,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
               <span className="text-[10px] font-medium text-gray-500">Upcoming</span>
+            </div>
+          ) : product.stock === 0 ? (
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-red-500 rounded-full" />
+              <span className="text-[10px] font-medium text-gray-500">Out of Stock</span>
             </div>
           ) : (
             <div className="flex items-center gap-1">

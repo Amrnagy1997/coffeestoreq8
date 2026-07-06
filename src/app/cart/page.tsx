@@ -6,11 +6,12 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
-import { formatPrice } from "@/lib/utils";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
+  const { formatPrice } = useCurrency();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -44,20 +45,28 @@ export default function CartPage() {
                       <div className="flex justify-between items-center">
                         <p className="text-primary font-bold">{formatPrice(item.price)}</p>
                         
-                        <div className="flex items-center gap-4 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantId)}
-                            className="p-1 hover:text-primary transition-colors"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="font-bold text-sm w-4 text-center">{item.quantity}</span>
-                          <button 
-                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantId)}
-                            className="p-1 hover:text-primary transition-colors"
-                          >
-                            <Plus size={14} />
-                          </button>
+                        <div className="flex flex-col items-end gap-1">
+                          <div className="flex items-center gap-4 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity - 1, item.variantId)}
+                              className="p-1 hover:text-primary transition-colors"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="font-bold text-sm w-4 text-center">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, item.quantity + 1, item.variantId)}
+                              disabled={item.quantity >= item.stock}
+                              className="p-1 hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                          {item.quantity >= item.stock && (
+                            <span className="text-[10px] text-amber-500 font-bold select-none leading-none mt-0.5">
+                              أقصى كمية متوفرة ({item.stock})
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -7,7 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import prisma from "@/lib/prisma";
 import { CalendarClock, ChevronRight, Layers } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
+import PriceText from "@/components/PriceText";
 
 async function getCollections() {
   try {
@@ -173,11 +173,7 @@ export default async function PreOrderPage() {
                       <h2 className="font-outfit font-bold text-2xl group-hover:text-amber-500 transition-colors">
                         {col.name}
                       </h2>
-                      <p className="text-gray-500 text-sm mt-1">
-                        {col.minPrice === col.maxPrice
-                          ? formatPrice(col.minPrice)
-                          : `${formatPrice(col.minPrice)} – ${formatPrice(col.maxPrice)}`}
-                      </p>
+                      <PriceText minPrice={col.minPrice} maxPrice={col.maxPrice} className="text-gray-500 text-sm mt-1 block" />
                     </div>
                     <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 group-hover:bg-amber-500 rounded-full flex items-center justify-center transition-colors duration-300">
                       <ChevronRight

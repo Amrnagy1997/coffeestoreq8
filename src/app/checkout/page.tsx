@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { formatPrice } from "@/lib/utils";
+import { useCurrency } from "@/context/CurrencyContext";
 import { 
   User, 
   Phone, 
@@ -22,6 +22,7 @@ import { createOrder } from "./actions";
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart();
+  const { formatPrice, currency } = useCurrency();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -39,8 +40,21 @@ export default function CheckoutPage() {
   };
 
   const generateMessage = () => {
-    const items = cart.map(item => `• ${item.name} (x${item.quantity}) - ${formatPrice(item.price * item.quantity)}`).join("\n");
-    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Total Price: ${formatPrice(cartTotal)}*\n\n_Generated via coffeestoreq8.com_`;
+    const items = cart.map(item => {
+      const linePrice = item.price * item.quantity;
+      if (currency !== "KWD") {
+        const convertedLine = formatPrice(linePrice);
+        const originalLine = `${(linePrice).toFixed(3)} د.ك`;
+        return `• ${item.name} (x${item.quantity}) - ${convertedLine} (${originalLine})`;
+      }
+      return `• ${item.name} (x${item.quantity}) - ${formatPrice(linePrice)}`;
+    }).join("\n");
+
+    const totalText = currency !== "KWD"
+      ? `${formatPrice(cartTotal)} (${cartTotal.toFixed(3)} د.ك)`
+      : formatPrice(cartTotal);
+
+    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Total Price: ${totalText}*\n\n_Generated via coffeestoreq8.com_`;
   };
 
   const handleCopy = () => {

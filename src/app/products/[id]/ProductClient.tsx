@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useCart } from "@/context/CartContext";
-import { formatPrice } from "@/lib/utils";
+import { useCurrency } from "@/context/CurrencyContext";
 import { ShoppingCart, Check, Heart } from "lucide-react";
 
 interface Variant {
@@ -24,10 +24,11 @@ interface ProductClientProps {
     images: string[];
     variants: Variant[];
     isPreOrder: boolean;
+    stock: number;
   };
 }
-
 export default function ProductClient({ product }: ProductClientProps) {
+  const { formatPrice } = useCurrency();
   const { addToCart } = useCart();
   const [added, setAdded] = useState(false);
   const hasVariants = product.variants && product.variants.length > 0;
@@ -53,6 +54,7 @@ export default function ProductClient({ product }: ProductClientProps) {
       price: displayPrice,
       image: displayImage,
       quantity: 1,
+      stock: selectedVariant ? selectedVariant.stock : product.stock ?? 999,
       ...(selectedVariant
         ? { variantId: selectedVariant.id, variantName: selectedVariant.name }
         : {}),
@@ -184,7 +186,7 @@ export default function ProductClient({ product }: ProductClientProps) {
           <div className="flex flex-col sm:flex-row gap-4">
             <button
               onClick={handleAdd}
-              disabled={selectedVariant?.stock === 0}
+              disabled={selectedVariant ? selectedVariant.stock === 0 : product.stock === 0}
               className={`flex-[2] py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-premium shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed ${
                 added
                   ? "bg-green-500 text-white"
@@ -195,6 +197,10 @@ export default function ProductClient({ product }: ProductClientProps) {
                 <>
                   <Check size={20} />
                   تمت الإضافة
+                </>
+              ) : (selectedVariant ? selectedVariant.stock === 0 : product.stock === 0) ? (
+                <>
+                  نفذت الكمية
                 </>
               ) : (
                 <>

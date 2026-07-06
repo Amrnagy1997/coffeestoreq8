@@ -10,6 +10,7 @@ interface CartItem {
   quantity: number;
   variantId?: string;
   variantName?: string;
+  stock: number;
 }
 
 interface CartContextType {
@@ -59,11 +60,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       if (existingItem) {
         return prevCart.map((i) =>
           cartItemKey(i.id, i.variantId) === cartItemKey(item.id, item.variantId)
-            ? { ...i, quantity: i.quantity + item.quantity }
+            ? { ...i, quantity: Math.min(i.quantity + item.quantity, item.stock) }
             : i
         );
       }
-      return [...prevCart, item];
+      return [...prevCart, { ...item, quantity: Math.min(item.quantity, item.stock) }];
     });
   };
 
@@ -83,7 +84,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     setCart((prevCart) =>
       prevCart.map((item) =>
         cartItemKey(item.id, item.variantId) === cartItemKey(id, variantId)
-          ? { ...item, quantity }
+          ? { ...item, quantity: Math.min(quantity, item.stock) }
           : item
       )
     );

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import prisma from "@/lib/prisma";
-import { formatPrice } from "@/lib/utils";
+import PriceText from "@/components/PriceText";
 import { 
   User as UserIcon, 
   ShoppingBag, 
@@ -131,7 +131,7 @@ export default async function ProfilePage() {
                       <div className="flex flex-col justify-between items-end">
                         <div className="text-right">
                            <p className="text-sm text-gray-400">Total Amount</p>
-                           <p className="text-2xl font-bold text-primary">{formatPrice(order.totalPrice)}</p>
+                           <PriceText price={order.totalPrice} className="text-2xl font-bold text-primary block" />
                         </div>
                         <button className="bg-gray-100 dark:bg-zinc-800 px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors">
                           Order Details
