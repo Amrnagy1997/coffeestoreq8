@@ -66,6 +66,7 @@ export default function ProductClient({ product }: ProductClientProps) {
       image: displayImage,
       quantity: finalQty,
       stock: maxStock ?? 999,
+      isPreOrder: product.isPreOrder,
       ...(selectedVariant
         ? { variantId: selectedVariant.id, variantName: selectedVariant.name }
         : {}),
@@ -130,6 +131,12 @@ export default function ProductClient({ product }: ProductClientProps) {
           <p className="text-2xl font-bold text-primary">
             {formatPrice(displayPrice)}
           </p>
+          {product.isPreOrder && (
+            <div className="mt-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 p-4 rounded-2xl text-sm font-bold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span>طلب مسبق: يصل هذا المنتج خلال 2 - 3 أسابيع</span>
+            </div>
+          )}
         </div>
 
         <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-lg">

@@ -33,7 +33,14 @@ export default function CartPage() {
                     
                     <div className="flex-grow">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-lg">{item.name}</h3>
+                        <div>
+                          <h3 className="font-bold text-lg">{item.name}</h3>
+                          {item.isPreOrder && (
+                            <span className="text-xs text-amber-500 font-bold block mt-1">
+                              طلب مسبق (يصل خلال 2-3 أسابيع)
+                            </span>
+                          )}
+                        </div>
                         <button 
                           onClick={() => removeFromCart(item.id, item.variantId)}
                           className="text-gray-400 hover:text-red-500 transition-colors"

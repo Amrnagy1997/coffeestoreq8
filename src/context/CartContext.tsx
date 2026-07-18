@@ -11,6 +11,7 @@ interface CartItem {
   variantId?: string;
   variantName?: string;
   stock: number;
+  isPreOrder?: boolean;
 }
 
 interface CartContextType {

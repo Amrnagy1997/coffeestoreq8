@@ -65,7 +65,12 @@ export default function CheckoutPage() {
       ? `${formatPrice(grandTotal)} (${grandTotal.toFixed(3)} د.ك)`
       : formatPrice(grandTotal);
 
-    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Subtotal:* ${subtotalText}\n*Delivery:* ${deliveryText}\n*Total Price:* ${grandTotalText}\n\n_Generated via coffeestoreq8.com_`;
+    const hasPreOrderItems = cart.some(item => item.isPreOrder);
+    const preOrderNoticeText = hasPreOrderItems 
+      ? "\n\n*تنبيه:* يحتوي الطلب على منتجات طلب مسبق تصل خلال 2 - 3 أسابيع." 
+      : "";
+
+    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Subtotal:* ${subtotalText}\n*Delivery:* ${deliveryText}\n*Total Price:* ${grandTotalText}${preOrderNoticeText}\n\n_Generated via coffeestoreq8.com_`;
   };
 
   const handleCopy = () => {
@@ -291,6 +296,11 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="space-y-4">
+                  {cart.some(item => item.isPreOrder) && (
+                    <div className="bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 p-4 rounded-2xl text-xs font-bold leading-relaxed">
+                      ⚠️ تنبيه: يحتوي طلبك على منتجات طلب مسبق يستغرق توصيلها من 2 إلى 3 أسابيع.
+                    </div>
+                  )}
                   <button
                     onClick={handleCopy}
                     className={`w-full py-5 rounded-2xl font-bold flex items-center justify-center gap-2 transition-premium border-2 ${

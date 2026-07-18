@@ -81,7 +81,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               price: product.price,
               image: product.images[0],
               quantity: 1,
-              stock: product.stock ?? 999
+              stock: product.stock ?? 999,
+              isPreOrder: product.isPreOrder
             })}
             disabled={product.stock === 0}
             className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center shadow-md hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
