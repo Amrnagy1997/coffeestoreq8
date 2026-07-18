@@ -50,11 +50,22 @@ export default function CheckoutPage() {
       return `• ${item.name} (x${item.quantity}) - ${formatPrice(linePrice)}`;
     }).join("\n");
 
-    const totalText = currency !== "KWD"
+    const deliveryFee = currency === "KWD" ? 2 : 12;
+    const grandTotal = cartTotal + deliveryFee;
+
+    const subtotalText = currency !== "KWD"
       ? `${formatPrice(cartTotal)} (${cartTotal.toFixed(3)} د.ك)`
       : formatPrice(cartTotal);
 
-    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Total Price: ${totalText}*\n\n_Generated via coffeestoreq8.com_`;
+    const deliveryText = currency !== "KWD"
+      ? `${formatPrice(deliveryFee)} (${deliveryFee.toFixed(3)} د.ك)`
+      : formatPrice(deliveryFee);
+
+    const grandTotalText = currency !== "KWD"
+      ? `${formatPrice(grandTotal)} (${grandTotal.toFixed(3)} د.ك)`
+      : formatPrice(grandTotal);
+
+    return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Subtotal:* ${subtotalText}\n*Delivery:* ${deliveryText}\n*Total Price:* ${grandTotalText}\n\n_Generated via coffeestoreq8.com_`;
   };
 
   const handleCopy = () => {
@@ -69,12 +80,13 @@ export default function CheckoutPage() {
 
   const confirmRedirect = async () => {
     setIsSubmitting(true);
+    const deliveryFee = currency === "KWD" ? 2 : 12;
     try {
       const result = await createOrder({
         customerName: formData.name,
         customerPhone: formData.phone,
         customerAddress: formData.address,
-        totalPrice: cartTotal,
+        totalPrice: cartTotal + deliveryFee,
         instagramMessage: generateMessage(),
         items: cart.map(item => {
           if (!item.id) {
@@ -261,9 +273,20 @@ export default function CheckoutPage() {
                      ))}
                    </div>
                    <div className="h-[1px] bg-gray-200 dark:bg-zinc-700 w-full" />
+                   <div className="flex justify-between items-center text-sm pt-1">
+                     <span className="text-gray-500">Subtotal</span>
+                     <span className="font-bold">{formatPrice(cartTotal)}</span>
+                   </div>
+                   <div className="flex justify-between items-center text-sm pt-1">
+                     <span className="text-gray-500">Delivery Fee</span>
+                     <span className="font-bold text-primary">
+                       {formatPrice(currency === "KWD" ? 2 : 12)}
+                     </span>
+                   </div>
+                   <div className="h-[1px] bg-gray-200 dark:bg-zinc-700 w-full" />
                    <div className="flex justify-between items-center text-xl font-bold pt-2">
                      <span>Total Amount</span>
-                     <span className="text-primary">{formatPrice(cartTotal)}</span>
+                     <span className="text-primary">{formatPrice(cartTotal + (currency === "KWD" ? 2 : 12))}</span>
                    </div>
                 </div>
 

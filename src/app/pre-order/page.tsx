@@ -97,87 +97,66 @@ export default async function PreOrderPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
               {collections.map((col) => (
                 <Link
                   key={col.name}
                   href={`/pre-order/${col.slug}`}
-                  className="group relative bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-premium hover:shadow-premium-hover transition-all duration-500 border border-transparent hover:border-amber-300 dark:hover:border-amber-500/40"
+                  className="group relative bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-premium hover:shadow-premium-hover transition-all duration-500 border border-transparent hover:border-amber-300 dark:hover:border-amber-500/40 flex flex-col justify-between"
                 >
-                  {/* Image mosaic */}
-                  <div className="relative h-72 bg-gray-100 dark:bg-zinc-800 overflow-hidden">
-                    {col.previewImages.length >= 4 ? (
-                      <div className="grid grid-cols-2 grid-rows-2 h-full gap-0.5">
-                        {col.previewImages.slice(0, 4).map((img, i) => (
-                          <div key={i} className="relative overflow-hidden">
-                            <Image
-                              src={img}
-                              alt={col.name}
-                              fill
-                              sizes="50vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : col.previewImages.length >= 2 ? (
-                      <div className="grid grid-cols-2 h-full gap-0.5">
-                        {col.previewImages.slice(0, 2).map((img, i) => (
-                          <div key={i} className="relative overflow-hidden">
-                            <Image
-                              src={img}
-                              alt={col.name}
-                              fill
-                              sizes="50vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-700"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : col.previewImages.length === 1 ? (
-                      <Image
-                        src={col.previewImages[0]}
-                        alt={col.name}
-                        fill
-                        sizes="100vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <Layers size={48} className="text-gray-300" />
-                      </div>
-                    )}
+                  <div>
+                    {/* Cover Image */}
+                    <div className="relative aspect-square bg-gray-100 dark:bg-zinc-800 overflow-hidden">
+                      {col.previewImages[0] ? (
+                        <Image
+                          src={col.previewImages[0]}
+                          alt={col.name}
+                          fill
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
+                          className="object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Layers size={40} className="text-gray-300" />
+                        </div>
+                      )}
 
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/5 to-transparent" />
 
-                    {/* Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
-                        Pre-order
-                      </span>
+                      {/* Pre-order Badge */}
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-amber-500 text-white text-[8px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-md">
+                          Pre-order
+                        </span>
+                      </div>
+
+                      {/* Item count */}
+                      <div className="absolute top-3 right-3">
+                        <span className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-[10px] font-bold px-2 py-1 rounded-full text-gray-800 dark:text-gray-200">
+                          {col.items.length}{" "}
+                          {col.items.length === 1 ? "item" : "items"}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Item count */}
-                    <div className="absolute top-4 right-4">
-                      <span className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-xs font-bold px-3 py-1.5 rounded-full">
-                        {col.items.length}{" "}
-                        {col.items.length === 1 ? "item" : "items"}
-                      </span>
+                    {/* Info */}
+                    <div className="p-4">
+                      <h2 className="font-outfit font-bold text-base md:text-lg group-hover:text-amber-500 transition-colors line-clamp-1">
+                        {col.name}
+                      </h2>
+                      <PriceText minPrice={col.minPrice} maxPrice={col.maxPrice} className="text-gray-500 text-xs mt-1 block" />
                     </div>
                   </div>
 
-                  {/* Info */}
-                  <div className="p-6 flex items-center justify-between">
-                    <div>
-                      <h2 className="font-outfit font-bold text-2xl group-hover:text-amber-500 transition-colors">
-                        {col.name}
-                      </h2>
-                      <PriceText minPrice={col.minPrice} maxPrice={col.maxPrice} className="text-gray-500 text-sm mt-1 block" />
-                    </div>
-                    <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 group-hover:bg-amber-500 rounded-full flex items-center justify-center transition-colors duration-300">
+                  {/* Card footer actions */}
+                  <div className="px-4 pb-4 pt-0 flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      View Collection
+                    </span>
+                    <div className="w-8 h-8 bg-amber-50 dark:bg-amber-500/10 group-hover:bg-amber-500 rounded-full flex items-center justify-center transition-colors duration-300 ml-auto">
                       <ChevronRight
-                        size={22}
+                        size={16}
                         className="text-amber-500 group-hover:text-white transition-colors"
                       />
                     </div>
