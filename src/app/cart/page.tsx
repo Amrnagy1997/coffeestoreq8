@@ -11,7 +11,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency } = useCurrency();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -86,12 +86,16 @@ export default function CartPage() {
                     </div>
                     <div className="flex justify-between text-gray-500">
                       <span>Shipping</span>
-                      <span className="text-green-500 font-medium">Free</span>
+                      <span className="text-primary">
+                        {formatPrice(currency === "KWD" ? 2 : 12)}
+                      </span>
                     </div>
                     <div className="h-[1px] bg-gray-100 dark:bg-zinc-800 w-full" />
                     <div className="flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span className="text-primary">{formatPrice(cartTotal)}</span>
+                      <span className="text-primary">
+                        {formatPrice(cartTotal + (currency === "KWD" ? 2 : 12))}
+                      </span>
                     </div>
                   </div>
                   
