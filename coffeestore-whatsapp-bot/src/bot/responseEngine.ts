@@ -5,6 +5,16 @@ export interface ResponseResult {
   matchedRule?: string;
 }
 
+function normalizeArabicText(str: string): string {
+  return (str || "")
+    .replace(/[\u064B-\u065F]/g, "") // remove tashkeel
+    .replace(/[أإآ]/g, "ا") // normalize alef
+    .replace(/ة/g, "ه") // normalize taa marbouta
+    .replace(/[\r\n\t]/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
 export function generateAutomatedReply(incomingMessage: string, hasMedia?: boolean): ResponseResult {
   const config = getBotConfig();
 
@@ -13,7 +23,7 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
     return { replyText: "" };
   }
 
-  const text = (incomingMessage || "").trim().toLowerCase();
+  const text = normalizeArabicText(incomingMessage);
 
   // 1. Direct Route to Customer Support for Existing Order Status / Delivery Time Inquiries
   const isExistingOrderInquiry =
@@ -22,13 +32,13 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
     text.includes("امتى يوصل") ||
     text.includes("وين طلبي") ||
     text.includes("وين الطلب") ||
-    text.includes("أين طلبي") ||
+    text.includes("اين طلبي") ||
     text.includes("حالة الطلب") ||
     text.includes("تتبع الطلب") ||
     text.includes("تتبع طلبي") ||
     text.includes("استفسار عن طلب") ||
     text.includes("طلب سابق") ||
-    text.includes("تأخر الطلب") ||
+    text.includes("تاخر الطلب") ||
     text.includes("وصل الطلب") ||
     text.includes("ما وصل");
 
@@ -58,7 +68,6 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
       text.includes("كوب") ||
       text.includes("صورة") ||
       text.includes("طلب:") ||
-      text.includes("أريد") ||
       text.includes("اريد") ||
       text.includes("ابي") ||
       text.includes("ابغى") ||
@@ -88,7 +97,6 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
     text.includes("منيو") ||
     text.includes("منتجات") ||
     text.includes("اسعار") ||
-    text.includes("أسعار") ||
     text.includes("سعر") ||
     text.includes("موقع") ||
     text.includes("كتالوج") ||
@@ -130,7 +138,6 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
     text.includes("البحرين") ||
     text.includes("بحرين") ||
     text.includes("عمان") ||
-    text.includes("الإمارات") ||
     text.includes("الامارات") ||
     text.includes("امارات") ||
     text.includes("الخليج") ||
@@ -178,7 +185,7 @@ export function generateAutomatedReply(incomingMessage: string, hasMedia?: boole
 
   // 9. Check Custom Config Rules
   for (const rule of config.customResponses) {
-    if (rule.keyword && text.includes(rule.keyword.toLowerCase())) {
+    if (rule.keyword && text.includes(normalizeArabicText(rule.keyword))) {
       return {
         replyText: rule.response,
         matchedRule: `CUSTOM_${rule.id}`,

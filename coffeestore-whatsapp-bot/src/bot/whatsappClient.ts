@@ -95,7 +95,6 @@ export async function initWhatsAppWebClient() {
   console.log("[WhatsApp Client] Starting real WhatsApp Web engine...");
   state.status = "INITIALIZING";
 
-  // Reset all paused chats on startup
   clearAllPausedChats();
 
   let executablePath: string | undefined = process.env.PUPPETEER_EXECUTABLE_PATH;
@@ -144,7 +143,6 @@ export async function initWhatsAppWebClient() {
       },
     });
 
-    // Event: Live QR Code received
     waClient.on("qr", async (qr) => {
       console.log("[WhatsApp Client] Live REAL QR Code received from WhatsApp servers!");
       state.rawQrText = qr;
@@ -156,7 +154,6 @@ export async function initWhatsAppWebClient() {
       }
     });
 
-    // Event: Authenticated & Connected
     waClient.on("ready", () => {
       console.log("[WhatsApp Client] WhatsApp Web connected successfully!");
       state.status = "CONNECTED";
@@ -178,7 +175,6 @@ export async function initWhatsAppWebClient() {
       state.botPhone = "مرتبط بالواتساب التجاري";
     });
 
-
     waClient.on("auth_failure", (msg) => {
       console.error("[WhatsApp Client] Auth failure:", msg);
       state.status = "SCAN_QR";
@@ -190,14 +186,14 @@ export async function initWhatsAppWebClient() {
       state.botPhone = null;
     });
 
-    // Event: Human Agent Takeover Listener
+    // Event: Human Agent Takeover Listener (Detect human messages sent from phone)
     waClient.on("message_create", async (msg) => {
       if (msg.fromMe && !msg.to.includes("@g.us")) {
         const targetPhone = msg.to.replace("@c.us", "").replace(/[^0-9]/g, "");
         if (targetPhone) {
           pausedChats.set(targetPhone, Date.now());
           state.pausedChatsCount = pausedChats.size;
-          console.log(`[Human Agent Takeover] Agent sent message to: ${targetPhone}. Auto-reply paused.`);
+          console.log(`[Human Agent Takeover] Agent sent message to: ${targetPhone}. Auto-reply paused for 15 mins.`);
         }
       }
     });
@@ -213,17 +209,25 @@ export async function initWhatsAppWebClient() {
 
       const pausedTime = pausedChats.get(fromPhone);
       const isUnpauseCommand =
-        incomingText.toLowerCase() === "البوت" ||
-        incomingText.toLowerCase() === "تفعيل البوت" ||
-        incomingText.toLowerCase() === "start";
+        incomingText.toLowerCase().includes("البوت") ||
+        incomingText.toLowerCase().includes("منيو") ||
+        incomingText.toLowerCase().includes("سلام") ||
+        incomingText.toLowerCase().includes("مرحبا") ||
+        incomingText.toLowerCase().includes("start");
 
-      if (pausedTime && !isUnpauseCommand) {
-        // Paused chats can be bypassed if unpause command sent
-        console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is currently in human agent takeover mode.`);
+      // Auto-unpause human takeover after 15 minutes so customers aren't stuck forever
+      const fifteenMinutesInMs = 15 * 60 * 1000;
+      if (pausedTime && Date.now() - pausedTime > fifteenMinutesInMs) {
+        pausedChats.delete(fromPhone);
+        state.pausedChatsCount = pausedChats.size;
+      }
+
+      if (pausedChats.has(fromPhone) && !isUnpauseCommand) {
+        console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is currently paused for human agent conversation.`);
         return;
       }
 
-      if (isUnpauseCommand && pausedTime) {
+      if (isUnpauseCommand && pausedChats.has(fromPhone)) {
         pausedChats.delete(fromPhone);
         state.pausedChatsCount = pausedChats.size;
         console.log(`[WhatsApp Auto-Reply Resumed] Customer ${fromPhone} requested bot activation.`);
@@ -232,9 +236,10 @@ export async function initWhatsAppWebClient() {
       const hasPhotoOrMedia = Boolean(msg.hasMedia);
       const result = generateAutomatedReply(incomingText, hasPhotoOrMedia);
 
-      if (result.replyText) {
+      if (result.replyText && waClient) {
         try {
-          await msg.reply(result.replyText);
+          // Use waClient.sendMessage to prevent Puppeteer DOM event-loop freeze
+          await waClient.sendMessage(msg.from, result.replyText);
           addBotLog(fromPhone, incomingText, result.replyText, result.matchedRule);
           console.log(`[WhatsApp Reply Sent] To: ${fromPhone}`);
         } catch (sendErr) {
