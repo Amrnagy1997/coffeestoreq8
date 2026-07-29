@@ -42,13 +42,15 @@ function appendSystemLog(msg: string) {
 }
 
 const pausedChats = new Map<string, number>();
+const botSentMessageTexts = new Set<string>();
 let waClient: Client | null = null;
 
 export function clearAllPausedChats(): number {
   const count = pausedChats.size;
   pausedChats.clear();
+  botSentMessageTexts.clear();
   state.pausedChatsCount = 0;
-  appendSystemLog(`تم إلغاء التوقف لـ ${count} محادثة. البوت جاهز للرد الآلي فوراً.`);
+  appendSystemLog(`تم إزالة التوقف لـ ${count} محادثة. البوت جاهز للرد الآلي الفوري على جميع الرسائل المتتالية.`);
   return count;
 }
 
@@ -86,9 +88,6 @@ export async function requestPairingCode(phoneNumber: string): Promise<string> {
   }
 }
 
-/**
- * Reset WhatsApp Session & Clear Corrupted Cache
- */
 export async function resetWhatsAppClientSession(): Promise<void> {
   appendSystemLog("جاري إعادة تشغيل جلسة الواتساب ومسح التخزين المؤقت...");
   try {
@@ -111,7 +110,6 @@ export async function resetWhatsAppClientSession(): Promise<void> {
   state.botPhone = null;
   state.pairingCode = null;
 
-  // Re-init engine
   setTimeout(() => {
     initWhatsAppWebClient();
   }, 1000);
@@ -214,13 +212,30 @@ export async function initWhatsAppWebClient() {
       state.botPhone = null;
     });
 
+    // Event: Human Agent Takeover Listener (Detect ONLY manual human agent messages)
     waClient.on("message_create", async (msg) => {
       if (msg.fromMe && !msg.to.includes("@g.us")) {
         const targetPhone = msg.to.replace("@c.us", "").replace(/[^0-9]/g, "");
+        const bodyText = (msg.body || "").trim();
+
+        // Check if message was sent by the bot itself
+        const isBotAutomatedMessage =
+          botSentMessageTexts.has(bodyText) ||
+          bodyText.includes("CoffeeStore") ||
+          bodyText.includes("تصفح الكتالوج والأسعار") ||
+          bodyText.includes("كيفية الطلب") ||
+          bodyText.includes("تم تسجيل طلبك بنجاح") ||
+          bodyText.includes("توجيه استفسارك");
+
+        if (isBotAutomatedMessage) {
+          botSentMessageTexts.delete(bodyText);
+          return; // Do NOT pause auto-reply for bot's own automated messages!
+        }
+
         if (targetPhone) {
           pausedChats.set(targetPhone, Date.now());
           state.pausedChatsCount = pausedChats.size;
-          appendSystemLog(`رد بشري صادِر للرقم ${targetPhone}. تم إيقاف الرد التلقائي لهذا الرقم لمدة 15 دقيقة.`);
+          appendSystemLog(`رد بشري يدوي صادِر للرقم ${targetPhone}. تم إيقاف البوت لهذا الرقم لمدة 15 دقيقة.`);
         }
       }
     });
@@ -248,7 +263,7 @@ export async function initWhatsAppWebClient() {
       }
 
       if (pausedChats.has(fromPhone) && !isUnpauseCommand) {
-        appendSystemLog(`تم تخطي الرد التلقائي للرقم ${fromPhone} لوجود محادثة بشرية نشطة.`);
+        appendSystemLog(`تم تخطي الرد التلقائي للرقم ${fromPhone} لوجود محادثة بشرية يدوية نشطة.`);
         return;
       }
 
@@ -262,9 +277,12 @@ export async function initWhatsAppWebClient() {
 
       if (result.replyText && waClient) {
         try {
+          // Register bot reply text so message_create doesn't pause the chat
+          botSentMessageTexts.add(result.replyText.trim());
+
           await waClient.sendMessage(msg.from, result.replyText);
           addBotLog(fromPhone, incomingText, result.replyText, result.matchedRule);
-          appendSystemLog(`تم إرسال الرد التلقائي بنجاح إلى ${fromPhone}`);
+          appendSystemLog(`تم إرسال الرد التلقائي بنجاح إلى ${fromPhone} (${result.matchedRule})`);
         } catch (sendErr: any) {
           appendSystemLog(`خطأ أثناء إرسال الرسالة إلى ${fromPhone}: ${sendErr.message}`);
         }
