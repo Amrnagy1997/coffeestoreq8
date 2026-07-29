@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["nodejs-20_x", "chromium"]
+
+[phases.build]
+cmds = ["cd coffeestore-whatsapp-bot && npm install && npm run build"]
+
+[start]
+cmd = "cd coffeestore-whatsapp-bot && node dist/server/index.js"

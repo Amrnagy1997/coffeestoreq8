@@ -5,9 +5,11 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node domains/coffeestoreq8.com/nodejs/server.js",
+    "start": "cd coffeestore-whatsapp-bot && npm install && npm run build && node dist/server/index.js",
+    "start:web": "node domains/coffeestoreq8.com/nodejs/server.js",
     "lint": "eslint",
     "postinstall": "prisma generate"
+
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
