@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة التحكم | بوت واتساب CoffeeStore التلقائي ☕</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="logo">☕</div>
+      <div>
+        <h1>CoffeeStore WhatsApp Bot</h1>
+        <p class="subtitle">البوت التلقائي المستقل لخدمة العملاء 24/7</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div id="statusBadge" class="badge badge-warning">
+        <span class="pulse-dot"></span>
+        <span id="statusText">جاري تجهيز رمز QR...</span>
+      </div>
+
+      <button id="toggleBotBtn" class="btn btn-emerald">
+        ⚡ البوت مفعل تلقائياً
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Dashboard Container -->
+  <main class="container">
+    <!-- Quick Stats Grid -->
+    <section class="stats-grid">
+      <div class="card stat-card">
+        <div class="stat-icon">🤖</div>
+        <div class="stat-info">
+          <span class="stat-title">حالة الرد التلقائي</span>
+          <h2 id="statBotActive">مفعل 24/7</h2>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon">📱</div>
+        <div class="stat-info">
+          <span class="stat-title">الحساب المربوط</span>
+          <h2 id="statConnectedPhone">في انتظار المسح</h2>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-info">
+          <span class="stat-title">القواعد الذكية المفعلة</span>
+          <h2 id="statRulesCount">6 قواعد</h2>
+        </div>
+      </div>
+
+      <div class="card stat-card">
+        <div class="stat-icon">💬</div>
+        <div class="stat-info">
+          <span class="stat-title">إجمالي الردود الآلية</span>
+          <h2 id="statTotalReplies">0 رد</h2>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Layout -->
+    <div class="grid-layout">
+      <!-- Left Panel: QR Code Pairing & Connection -->
+      <section class="card qr-section">
+        <div class="card-header">
+          <h3>📱 ربط حساب الواتساب (QR Code)</h3>
+          <button id="simConnectBtn" class="btn btn-sm btn-outline">محاكاة الاقتران 🔗</button>
+        </div>
+        <p class="card-desc">افتح تطبيق **WhatsApp Business** على هاتفك ➔ الأجهزة المرتبطة ➔ امسح رمز الـ QR أدناه للربط الفوري:</p>
+
+        <div class="qr-box">
+          <img id="qrImage" src="" alt="WhatsApp QR Code" />
+          <div id="qrOverlay" class="qr-overlay hidden">
+            <span class="check-icon">✅</span>
+            <h4>تم الاقتران بنجاح!</h4>
+            <p id="connectedPhoneText">+965 9000 1122</p>
+          </div>
+        </div>
+
+        <div class="instructions">
+          <ul>
+            <li>✨ يعمل البوت آلياً 24 ساعة دون الحاجة لتواجدك.</li>
+            <li>💬 يرد على الاستفسارات والمنيو فور استلام الرسالة.</li>
+            <li>⏸️ يمكنك إيقاف البوت لأي محادثة بالرد اليدوي.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Right Panel: Custom Rule Manager & Bot Settings -->
+      <section class="card rules-section">
+        <div class="card-header">
+          <h3>⚙️ إدارة القواعد التلقائية والردود الذكية</h3>
+        </div>
+
+        <!-- Add New Rule Form -->
+        <form id="addRuleForm" class="rule-form">
+          <div class="form-group">
+            <label>الكلمة المفتاحية (Keyword)</label>
+            <input type="text" id="newKeyword" placeholder="مثلاً: عروض، مواعيد، موقعكم..." required />
+          </div>
+
+          <div class="form-group">
+            <label>نص الرد التلقائي (Automated Reply)</label>
+            <textarea id="newResponse" rows="2" placeholder="اكتب نص الرد الذي سيصل للعميل تلقائياً..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-amber">
+            ➕ إضافة قاعدة رد جديدة
+          </button>
+        </form>
+
+        <!-- Existing Rules Table -->
+        <div class="rules-list-container">
+          <h4>القواعد المفعلة حالياً:</h4>
+          <div id="rulesList" class="rules-list">
+            <!-- Dynamic Rules Inserted Here -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Live Testing & Message Logs Section -->
+    <section class="card logs-section">
+      <div class="card-header">
+        <h3>💬 تجربة البوت وسجل الرسائل التلقائية المباشرة</h3>
+      </div>
+
+      <div class="simulator-grid">
+        <!-- Live Test Form -->
+        <div class="test-box">
+          <h4>اختبر رد البوت الآن:</h4>
+          <div class="input-group">
+            <input type="text" id="testMessageInput" placeholder="اكتب كلمة تجريبية (مثلاً: مرحبا، المنيو، عروض، موقعكم)..." />
+            <button id="sendTestMsgBtn" class="btn btn-emerald">إرسال واختبار 🚀</button>
+          </div>
+
+          <div id="testResultBox" class="test-result hidden">
+            <div class="result-header">
+              <span id="testRuleBadge" class="badge"></span>
+            </div>
+            <div id="testReplyContent" class="reply-content"></div>
+          </div>
+        </div>
+
+        <!-- Live Message Logs Table -->
+        <div class="logs-box">
+          <h4>سجل آخر المحادثات والردود الآلية:</h4>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>الوقت</th>
+                  <th>رقم العميل</th>
+                  <th>الرسالة المستلمة</th>
+                  <th>الرد التلقائي المرسل</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <tr>
+                  <td colSpan="4" class="text-center">لا توجد محادثات حتى الآن. جرب اختبار البوت أعلاه!</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
