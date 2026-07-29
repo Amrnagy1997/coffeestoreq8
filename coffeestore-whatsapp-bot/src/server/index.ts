@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { getBotConfig, saveBotConfig } from "../bot/configManager";
-import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl, requestPairingCode, clearAllPausedChats } from "../bot/whatsappClient";
+import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl, requestPairingCode, clearAllPausedChats, resetWhatsAppClientSession } from "../bot/whatsappClient";
 
 // Global process error catchers to prevent crash on minor puppeteer warnings
 process.on("uncaughtException", (err) => {
@@ -62,6 +62,20 @@ app.post("/api/unpause-all", (req, res) => {
     message: `تم إعادة تفعيل الرد الآلي لـ ${clearedCount} محادثة بنجاح! البوت سيرد فوراً الآن.`,
   });
 });
+
+// API: Force Reset WhatsApp Client Session & Auth Cache
+app.post("/api/reset-session", async (req, res) => {
+  try {
+    await resetWhatsAppClientSession();
+    res.json({
+      success: true,
+      message: "تم إعادة تشغيل جلسة الواتساب ومسح التخزين المؤقت بنجاح!",
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 
 

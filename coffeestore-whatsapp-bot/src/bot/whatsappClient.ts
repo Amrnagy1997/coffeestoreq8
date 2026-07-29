@@ -11,6 +11,7 @@ export interface BotState {
   botPhone: string | null;
   pairingCode: string | null;
   pausedChatsCount: number;
+  systemLogs: string[];
   logs: Array<{
     id: string;
     timestamp: string;
@@ -28,71 +29,96 @@ const state: BotState = {
   botPhone: null,
   pairingCode: null,
   pausedChatsCount: 0,
+  systemLogs: [],
   logs: [],
 };
 
-// Map storing chats paused due to human agent takeover: phone -> timestamp
+function appendSystemLog(msg: string) {
+  const time = new Date().toLocaleTimeString("ar-EG");
+  const entry = `[${time}] ${msg}`;
+  console.log(entry);
+  state.systemLogs.unshift(entry);
+  if (state.systemLogs.length > 30) state.systemLogs.pop();
+}
+
 const pausedChats = new Map<string, number>();
 let waClient: Client | null = null;
 
-/**
- * Clear all paused chats so the bot responds to all numbers immediately without waiting
- */
 export function clearAllPausedChats(): number {
   const count = pausedChats.size;
   pausedChats.clear();
   state.pausedChatsCount = 0;
-  console.log(`[WhatsApp Client] Cleared ${count} paused chats. All numbers reset for instant auto-reply!`);
+  appendSystemLog(`تم إلغاء التوقف لـ ${count} محادثة. البوت جاهز للرد الآلي فوراً.`);
   return count;
 }
 
-/**
- * Unpause specific phone number
- */
 export function unpauseChat(phone: string) {
   const clean = phone.replace(/[^0-9]/g, "");
   pausedChats.delete(clean);
   state.pausedChatsCount = pausedChats.size;
 }
 
-/**
- * Ensure QR code data URL is updated with latest raw QR text
- */
 export async function ensureQrCodeDataUrl(): Promise<string> {
   if (state.rawQrText) {
     try {
       state.qrCodeDataUrl = await QRCode.toDataURL(state.rawQrText, { width: 320, margin: 2 });
     } catch (e) {
-      console.error("[WhatsApp Client] Error rendering QR data URL:", e);
+      console.error("Error rendering QR data URL:", e);
     }
   }
   return state.qrCodeDataUrl || "";
 }
 
-/**
- * Request an 8-character Pairing Code for Linking with Phone Number
- */
 export async function requestPairingCode(phoneNumber: string): Promise<string> {
   const cleanPhone = phoneNumber.replace(/[^0-9]/g, "");
   if (!waClient) {
     throw new Error("سيرفر الواتساب قيد التهيئة، يرجى المحاولة بعد قليل.");
   }
   try {
+    appendSystemLog(`جاري طلب كود الاقتران للرقم: ${cleanPhone}`);
     const code = await (waClient as any).requestPairingCode(cleanPhone);
     state.pairingCode = code;
-    console.log(`[WhatsApp Client] Pairing Code generated for ${cleanPhone}: ${code}`);
+    appendSystemLog(`تم توليد كود الاقتران بنجاح: ${code}`);
     return code;
   } catch (err: any) {
-    console.error("[WhatsApp Client] Error requesting pairing code:", err);
+    appendSystemLog(`فشل توليد كود الاقتران: ${err.message}`);
     throw new Error(err.message || "تعذر توليد كود الاقتران حالياً.");
   }
 }
 
 /**
- * Initialize Real WhatsApp Web Client via Puppeteer
+ * Reset WhatsApp Session & Clear Corrupted Cache
  */
+export async function resetWhatsAppClientSession(): Promise<void> {
+  appendSystemLog("جاري إعادة تشغيل جلسة الواتساب ومسح التخزين المؤقت...");
+  try {
+    if (waClient) {
+      await waClient.destroy().catch(() => {});
+      waClient = null;
+    }
+    const authFolder = path.join(process.cwd(), ".wwebjs_auth");
+    if (fs.existsSync(authFolder)) {
+      fs.rmSync(authFolder, { recursive: true, force: true });
+      appendSystemLog("تم مسح مجلد الجلسة القديمة .wwebjs_auth بنجاح.");
+    }
+  } catch (e: any) {
+    appendSystemLog(`تنبيه أثناء مسح الجلسة: ${e.message}`);
+  }
+
+  state.status = "INITIALIZING";
+  state.qrCodeDataUrl = null;
+  state.rawQrText = null;
+  state.botPhone = null;
+  state.pairingCode = null;
+
+  // Re-init engine
+  setTimeout(() => {
+    initWhatsAppWebClient();
+  }, 1000);
+}
+
 export async function initWhatsAppWebClient() {
-  console.log("[WhatsApp Client] Starting real WhatsApp Web engine...");
+  appendSystemLog("بدء تشغيل محرك WhatsApp Web المباشر...");
   state.status = "INITIALIZING";
 
   clearAllPausedChats();
@@ -111,12 +137,12 @@ export async function initWhatsAppWebClient() {
     for (const p of chromePaths) {
       if (fs.existsSync(p)) {
         executablePath = p;
-        console.log(`[WhatsApp Client] Found browser executable at: ${p}`);
+        appendSystemLog(`تم العثور على متصفح Chromium في: ${p}`);
         break;
       }
     }
   } else {
-    console.log(`[WhatsApp Client] Using PUPPETEER_EXECUTABLE_PATH: ${executablePath}`);
+    appendSystemLog(`استخدام متصفح النظام السحابي PUPPETEER_EXECUTABLE_PATH: ${executablePath}`);
   }
 
   try {
@@ -139,23 +165,25 @@ export async function initWhatsAppWebClient() {
           "--disable-gpu",
           "--disable-software-rasterizer",
           "--disable-dev-tools",
+          "--max-memory-per-target=128",
+          '--js-flags="--max-old-space-size=128"',
         ],
       },
     });
 
     waClient.on("qr", async (qr) => {
-      console.log("[WhatsApp Client] Live REAL QR Code received from WhatsApp servers!");
+      appendSystemLog("تم استلام رمز QR حقيقي جديد من خوادم الواتساب!");
       state.rawQrText = qr;
       state.status = "SCAN_QR";
       try {
         state.qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 320, margin: 2 });
       } catch (err) {
-        console.error("[WhatsApp Client] Failed to generate QR data URL:", err);
+        console.error("Failed to generate QR data URL:", err);
       }
     });
 
     waClient.on("ready", () => {
-      console.log("[WhatsApp Client] WhatsApp Web connected successfully!");
+      appendSystemLog("تم الاتصال بالواتساب وجاهزية البوت 100%!");
       state.status = "CONNECTED";
       state.qrCodeDataUrl = null;
       state.rawQrText = null;
@@ -168,7 +196,7 @@ export async function initWhatsAppWebClient() {
     });
 
     waClient.on("authenticated", () => {
-      console.log("[WhatsApp Client] Session authenticated!");
+      appendSystemLog("تم توثيق جلسة الواتساب بنجاح (Authenticated)!");
       state.status = "CONNECTED";
       state.qrCodeDataUrl = null;
       state.rawQrText = null;
@@ -176,36 +204,34 @@ export async function initWhatsAppWebClient() {
     });
 
     waClient.on("auth_failure", (msg) => {
-      console.error("[WhatsApp Client] Auth failure:", msg);
+      appendSystemLog(`فشل التوثيق Auth Failure: ${msg}`);
       state.status = "SCAN_QR";
     });
 
     waClient.on("disconnected", (reason) => {
-      console.log("[WhatsApp Client] Disconnected:", reason);
+      appendSystemLog(`انقطع الاتصال Disconnected: ${reason}`);
       state.status = "DISCONNECTED";
       state.botPhone = null;
     });
 
-    // Event: Human Agent Takeover Listener (Detect human messages sent from phone)
     waClient.on("message_create", async (msg) => {
       if (msg.fromMe && !msg.to.includes("@g.us")) {
         const targetPhone = msg.to.replace("@c.us", "").replace(/[^0-9]/g, "");
         if (targetPhone) {
           pausedChats.set(targetPhone, Date.now());
           state.pausedChatsCount = pausedChats.size;
-          console.log(`[Human Agent Takeover] Agent sent message to: ${targetPhone}. Auto-reply paused for 15 mins.`);
+          appendSystemLog(`رد بشري صادِر للرقم ${targetPhone}. تم إيقاف الرد التلقائي لهذا الرقم لمدة 15 دقيقة.`);
         }
       }
     });
 
-    // Event: Incoming Customer Message Listener
     waClient.on("message", async (msg) => {
       if (msg.from.includes("@g.us") || msg.from.includes("status")) return;
 
       const fromPhone = msg.from.replace("@c.us", "").replace(/[^0-9]/g, "");
       const incomingText = (msg.body || "").trim();
 
-      console.log(`[WhatsApp Incoming Msg] From: ${fromPhone}, Text: "${incomingText}"`);
+      appendSystemLog(`رسالة جديدة قادمة من ${fromPhone}: "${incomingText}"`);
 
       const pausedTime = pausedChats.get(fromPhone);
       const isUnpauseCommand =
@@ -215,7 +241,6 @@ export async function initWhatsAppWebClient() {
         incomingText.toLowerCase().includes("مرحبا") ||
         incomingText.toLowerCase().includes("start");
 
-      // Auto-unpause human takeover after 15 minutes so customers aren't stuck forever
       const fifteenMinutesInMs = 15 * 60 * 1000;
       if (pausedTime && Date.now() - pausedTime > fifteenMinutesInMs) {
         pausedChats.delete(fromPhone);
@@ -223,14 +248,13 @@ export async function initWhatsAppWebClient() {
       }
 
       if (pausedChats.has(fromPhone) && !isUnpauseCommand) {
-        console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is currently paused for human agent conversation.`);
+        appendSystemLog(`تم تخطي الرد التلقائي للرقم ${fromPhone} لوجود محادثة بشرية نشطة.`);
         return;
       }
 
       if (isUnpauseCommand && pausedChats.has(fromPhone)) {
         pausedChats.delete(fromPhone);
         state.pausedChatsCount = pausedChats.size;
-        console.log(`[WhatsApp Auto-Reply Resumed] Customer ${fromPhone} requested bot activation.`);
       }
 
       const hasPhotoOrMedia = Boolean(msg.hasMedia);
@@ -238,22 +262,21 @@ export async function initWhatsAppWebClient() {
 
       if (result.replyText && waClient) {
         try {
-          // Use waClient.sendMessage to prevent Puppeteer DOM event-loop freeze
           await waClient.sendMessage(msg.from, result.replyText);
           addBotLog(fromPhone, incomingText, result.replyText, result.matchedRule);
-          console.log(`[WhatsApp Reply Sent] To: ${fromPhone}`);
-        } catch (sendErr) {
-          console.error("[WhatsApp Send Reply Error]:", sendErr);
+          appendSystemLog(`تم إرسال الرد التلقائي بنجاح إلى ${fromPhone}`);
+        } catch (sendErr: any) {
+          appendSystemLog(`خطأ أثناء إرسال الرسالة إلى ${fromPhone}: ${sendErr.message}`);
         }
       }
     });
 
     waClient.initialize().catch((err) => {
-      console.error("[WhatsApp Client Initialize Error]:", err);
+      appendSystemLog(`خطأ عند تهيئة العميل Initialize Error: ${err.message}`);
       state.status = "SCAN_QR";
     });
   } catch (err: any) {
-    console.error("[WhatsApp Client Setup Failed]:", err);
+    appendSystemLog(`فشل إعداد الواتساب: ${err.message}`);
   }
 }
 

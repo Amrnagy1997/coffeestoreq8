@@ -10,10 +10,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Setup Event Listeners
   document.getElementById("toggleBotBtn").addEventListener("click", toggleBotActive);
   document.getElementById("resetPausedChatsBtn")?.addEventListener("click", handleResetPausedChats);
+  document.getElementById("resetSessionBtn")?.addEventListener("click", handleResetSession);
   document.getElementById("simConnectBtn").addEventListener("click", togglePairingSimulation);
   document.getElementById("addRuleForm").addEventListener("submit", handleAddRule);
   document.getElementById("getPairingCodeBtn")?.addEventListener("click", handleGetPairingCode);
 });
+
+async function handleResetSession() {
+  if (!confirm("هل أنت تأكد من مسح الجلسة القديمة وإعادة تشغيل البوت؟ ستصلك شفرة QR جديدة للاقتران.")) return;
+  try {
+    const res = await fetch("/api/reset-session", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message || "تم مسح الجلسة وإعادة تشغيل البوت بنجاح!");
+      fetchStatus();
+    }
+  } catch (err) {
+    alert("حدث خطأ أثناء إعادة تشغيل الجلسة.");
+  }
+}
+
 
 async function handleResetPausedChats() {
   try {
