@@ -31,8 +31,29 @@ const state: BotState = {
   logs: [],
 };
 
+// Map storing chats paused due to human agent takeover: phone -> timestamp
 const pausedChats = new Map<string, number>();
 let waClient: Client | null = null;
+
+/**
+ * Clear all paused chats so the bot responds to all numbers immediately without waiting
+ */
+export function clearAllPausedChats(): number {
+  const count = pausedChats.size;
+  pausedChats.clear();
+  state.pausedChatsCount = 0;
+  console.log(`[WhatsApp Client] Cleared ${count} paused chats. All numbers reset for instant auto-reply!`);
+  return count;
+}
+
+/**
+ * Unpause specific phone number
+ */
+export function unpauseChat(phone: string) {
+  const clean = phone.replace(/[^0-9]/g, "");
+  pausedChats.delete(clean);
+  state.pausedChatsCount = pausedChats.size;
+}
 
 /**
  * Ensure QR code data URL is updated with latest raw QR text
@@ -73,6 +94,9 @@ export async function requestPairingCode(phoneNumber: string): Promise<string> {
 export async function initWhatsAppWebClient() {
   console.log("[WhatsApp Client] Starting real WhatsApp Web engine...");
   state.status = "INITIALIZING";
+
+  // Reset all paused chats on startup
+  clearAllPausedChats();
 
   let executablePath: string | undefined = process.env.PUPPETEER_EXECUTABLE_PATH;
 
@@ -189,14 +213,9 @@ export async function initWhatsAppWebClient() {
         incomingText.toLowerCase() === "start";
 
       if (pausedTime && !isUnpauseCommand) {
-        const twelveHoursInMs = 12 * 60 * 60 * 1000;
-        if (Date.now() - pausedTime < twelveHoursInMs) {
-          console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is paused for human agent conversation.`);
-          return;
-        } else {
-          pausedChats.delete(fromPhone);
-          state.pausedChatsCount = pausedChats.size;
-        }
+        // Paused chats can be bypassed if unpause command sent
+        console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is currently in human agent takeover mode.`);
+        return;
       }
 
       if (isUnpauseCommand && pausedTime) {
@@ -226,12 +245,6 @@ export async function initWhatsAppWebClient() {
   } catch (err: any) {
     console.error("[WhatsApp Client Setup Failed]:", err);
   }
-}
-
-export function unpauseChat(phone: string) {
-  const clean = phone.replace(/[^0-9]/g, "");
-  pausedChats.delete(clean);
-  state.pausedChatsCount = pausedChats.size;
 }
 
 export function getBotState(): BotState {

@@ -9,10 +9,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Setup Event Listeners
   document.getElementById("toggleBotBtn").addEventListener("click", toggleBotActive);
+  document.getElementById("resetPausedChatsBtn")?.addEventListener("click", handleResetPausedChats);
   document.getElementById("simConnectBtn").addEventListener("click", togglePairingSimulation);
   document.getElementById("addRuleForm").addEventListener("submit", handleAddRule);
   document.getElementById("getPairingCodeBtn")?.addEventListener("click", handleGetPairingCode);
 });
+
+async function handleResetPausedChats() {
+  try {
+    const res = await fetch("/api/unpause-all", { method: "POST" });
+    const data = await res.json();
+    if (data.success) {
+      alert(data.message || "تم إعادة تفعيل الرد الآلي لجميع المحادثات فوراً!");
+      fetchStatus();
+    }
+  } catch (err) {
+    alert("حدث خطأ أثناء الاتصال بالسيرفر.");
+  }
+}
+
 
 async function handleGetPairingCode() {
   const input = document.getElementById("pairingPhoneInput");

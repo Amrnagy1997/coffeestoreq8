@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { getBotConfig, saveBotConfig } from "../bot/configManager";
-import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl, requestPairingCode } from "../bot/whatsappClient";
+import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl, requestPairingCode, clearAllPausedChats } from "../bot/whatsappClient";
 
 // Global process error catchers to prevent crash on minor puppeteer warnings
 process.on("uncaughtException", (err) => {
@@ -53,6 +53,16 @@ app.post("/api/request-pairing-code", async (req, res) => {
     res.status(500).json({ success: false, error: err.message || "فشل توليد كود الاقتران" });
   }
 });
+
+// API: Unpause / Reset All Paused Chats Immediately
+app.post("/api/unpause-all", (req, res) => {
+  const clearedCount = clearAllPausedChats();
+  res.json({
+    success: true,
+    message: `تم إعادة تفعيل الرد الآلي لـ ${clearedCount} محادثة بنجاح! البوت سيرد فوراً الآن.`,
+  });
+});
+
 
 
 
