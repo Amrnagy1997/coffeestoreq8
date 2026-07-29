@@ -30,5 +30,6 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "scratch"]
+  "exclude": ["node_modules", "scratch", "coffeestore-whatsapp-bot"]
 }
+
