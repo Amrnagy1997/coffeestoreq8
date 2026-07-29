@@ -4,14 +4,28 @@ import path from "path";
 import { getBotConfig, saveBotConfig } from "../bot/configManager";
 import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus } from "../bot/whatsappClient";
 
+// Global process error catchers to prevent crash on minor puppeteer warnings
+process.on("uncaughtException", (err) => {
+  console.error("[Global Safety] Uncaught Exception:", err.message);
+});
+
+process.on("unhandledRejection", (reason: any) => {
+  console.error("[Global Safety] Unhandled Rejection:", reason?.message || reason);
+});
+
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 app.use(cors());
 app.use(express.json());
 
 // Serve Static Control Dashboard UI
 app.use(express.static(path.join(__dirname, "..", "public")));
+
+// Container Health Check Route for Railway / Cloud Providers
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 // Initialize Real WhatsApp Client Engine
 initWhatsAppWebClient();
@@ -25,7 +39,6 @@ app.get("/api/status", async (req, res) => {
   });
 });
 
-
 // API: Toggle Connect Status (for simulation)
 app.post("/api/status/toggle", (req, res) => {
   const currentState = getBotState();
@@ -36,7 +49,6 @@ app.post("/api/status/toggle", (req, res) => {
   }
   res.json({ success: true, state: getBotState() });
 });
-
 
 // API: Get Bot Configuration
 app.get("/api/config", (req, res) => {
@@ -111,9 +123,10 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "..", "public", "index.html"));
 });
 
-app.listen(PORT, () => {
+// Bind to '0.0.0.0' for Docker / Railway container compatibility
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`====================================================`);
   console.log(`🚀 CoffeeStore WhatsApp Bot Microservice Started!`);
-  console.log(`🌐 Control Dashboard URL: http://localhost:${PORT}`);
+  console.log(`🌐 Control Dashboard URL: http://0.0.0.0:${PORT}`);
   console.log(`====================================================`);
 });

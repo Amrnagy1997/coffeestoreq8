@@ -82,9 +82,13 @@ export function initWhatsAppWebClient() {
           "--disable-accelerated-2d-canvas",
           "--no-first-run",
           "--no-zygote",
+          "--single-process",
           "--disable-gpu",
+          "--disable-software-rasterizer",
+          "--disable-dev-tools",
         ],
       },
+
     });
 
     // Event: Live QR Code received
