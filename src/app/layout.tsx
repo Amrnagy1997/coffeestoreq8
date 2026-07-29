@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,8 +36,10 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <Providers>
           {children}
+          <WhatsAppWidget />
         </Providers>
       </body>
     </html>
   );
 }
+

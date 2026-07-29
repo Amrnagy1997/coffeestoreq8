@@ -82,3 +82,15 @@ model OrderItem {
   variantId   String?
   variantName String?
 }
+
+model WhatsAppSession {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  step        String   @default("IDLE")
+  cartData    String   @default("[]")
+  tempName    String?
+  tempAddress String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
