@@ -95,7 +95,22 @@
             <li>⏸️ يمكنك إيقاف البوت لأي محادثة بالرد اليدوي.</li>
           </ul>
         </div>
+
+        <!-- Pairing Code Box (Alternative to QR Code) -->
+        <div class="pairing-code-box" style="margin-top: 15px; padding: 14px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--border-color);">
+          <h4 style="font-size: 13px; color: var(--wa-green); margin-bottom: 6px;">🔢 البديل السريع: الربط برقم الهاتف (بدون كاميرا)</h4>
+          <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">أدخل رقم هاتفك التجاري (مع كود الدولة) واحصل على كود الاقتران المكون من 8 أرقام:</p>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="pairingPhoneInput" placeholder="مثال: 96590001122" style="flex: 1;" />
+            <button id="getPairingCodeBtn" class="btn btn-amber" style="padding: 8px 12px; font-size: 12px;">طلب الكود 🔢</button>
+          </div>
+          <div id="pairingCodeDisplay" class="hidden" style="margin-top: 10px; padding: 10px; background: #005c4b; border-radius: 8px; text-align: center;">
+            <span style="font-size: 11px; display: block; color: #a7f3d0;">أدخل الكود التالي في الواتساب ➔ الأجهزة المرتبطة ➔ الربط برقم الهاتف:</span>
+            <strong id="codeText" style="font-size: 22px; letter-spacing: 4px; color: #fff; display: block; margin-top: 4px;"></strong>
+          </div>
+        </div>
       </section>
+
 
       <!-- Right Panel: Custom Rule Manager & Bot Settings -->
       <section class="card rules-section">

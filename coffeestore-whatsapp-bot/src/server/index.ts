@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { getBotConfig, saveBotConfig } from "../bot/configManager";
-import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl } from "../bot/whatsappClient";
+import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl, requestPairingCode } from "../bot/whatsappClient";
 
 // Global process error catchers to prevent crash on minor puppeteer warnings
 process.on("uncaughtException", (err) => {
@@ -39,6 +39,21 @@ app.get("/api/status", async (req, res) => {
     state: currentState,
   });
 });
+
+// API: Request WhatsApp 8-Character Pairing Code
+app.post("/api/request-pairing-code", async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) {
+    return res.status(400).json({ success: false, error: "يرجى إدخال رقم الهاتف مع كود الدولة" });
+  }
+  try {
+    const code = await requestPairingCode(phone);
+    res.json({ success: true, pairingCode: code });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || "فشل توليد كود الاقتران" });
+  }
+});
+
 
 
 // API: Toggle Connect Status (for simulation)

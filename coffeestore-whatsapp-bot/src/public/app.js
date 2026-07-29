@@ -11,11 +11,41 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("toggleBotBtn").addEventListener("click", toggleBotActive);
   document.getElementById("simConnectBtn").addEventListener("click", togglePairingSimulation);
   document.getElementById("addRuleForm").addEventListener("submit", handleAddRule);
-  document.getElementById("sendTestMsgBtn").addEventListener("click", handleSendTestMessage);
-  document.getElementById("testMessageInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") handleSendTestMessage();
-  });
+  document.getElementById("getPairingCodeBtn")?.addEventListener("click", handleGetPairingCode);
 });
+
+async function handleGetPairingCode() {
+  const input = document.getElementById("pairingPhoneInput");
+  const displayBox = document.getElementById("pairingCodeDisplay");
+  const codeText = document.getElementById("codeText");
+  const phone = input.value.trim();
+
+  if (!phone) {
+    alert("يرجى إدخال رقم الهاتف أولاً مع كود الدولة (مثال: 96590001122)");
+    return;
+  }
+
+  codeText.innerText = "جاري طلب الكود من الواتساب...";
+  displayBox.classList.remove("hidden");
+
+  try {
+    const res = await fetch("/api/request-pairing-code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json();
+
+    if (data.success && data.pairingCode) {
+      codeText.innerText = data.pairingCode;
+    } else {
+      codeText.innerText = data.error || "تأكد من إدخال الرقم الصحيح وانتظر لحظات.";
+    }
+  } catch (err) {
+    codeText.innerText = "حدث خطأ أثناء الاتصال بالسيرفر.";
+  }
+}
+
 
 let isBotActive = true;
 

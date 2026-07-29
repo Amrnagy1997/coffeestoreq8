@@ -35,18 +35,36 @@ const pausedChats = new Map<string, number>();
 let waClient: Client | null = null;
 
 /**
- * Ensure QR code data URL is never empty
+ * Ensure QR code data URL is updated with latest raw QR text
  */
 export async function ensureQrCodeDataUrl(): Promise<string> {
-  if (!state.qrCodeDataUrl) {
-    const textToEncode = state.rawQrText || `https://coffeestoreq8.com/whatsapp-bot-pair?t=${Date.now()}`;
+  if (state.rawQrText) {
     try {
-      state.qrCodeDataUrl = await QRCode.toDataURL(textToEncode, { width: 320, margin: 2 });
+      state.qrCodeDataUrl = await QRCode.toDataURL(state.rawQrText, { width: 320, margin: 2 });
     } catch (e) {
-      console.error("[WhatsApp Client] Error generating QR data URL:", e);
+      console.error("[WhatsApp Client] Error rendering QR data URL:", e);
     }
   }
   return state.qrCodeDataUrl || "";
+}
+
+/**
+ * Request an 8-character Pairing Code for Linking with Phone Number
+ */
+export async function requestPairingCode(phoneNumber: string): Promise<string> {
+  const cleanPhone = phoneNumber.replace(/[^0-9]/g, "");
+  if (!waClient) {
+    throw new Error("سيرفر الواتساب قيد التهيئة، يرجى المحاولة بعد قليل.");
+  }
+  try {
+    const code = await (waClient as any).requestPairingCode(cleanPhone);
+    state.pairingCode = code;
+    console.log(`[WhatsApp Client] Pairing Code generated for ${cleanPhone}: ${code}`);
+    return code;
+  } catch (err: any) {
+    console.error("[WhatsApp Client] Error requesting pairing code:", err);
+    throw new Error(err.message || "تعذر توليد كود الاقتران حالياً.");
+  }
 }
 
 /**
@@ -55,9 +73,6 @@ export async function ensureQrCodeDataUrl(): Promise<string> {
 export async function initWhatsAppWebClient() {
   console.log("[WhatsApp Client] Starting real WhatsApp Web engine...");
   state.status = "INITIALIZING";
-
-  // Generate immediate QR Data URL for display
-  await ensureQrCodeDataUrl();
 
   let executablePath: string | undefined = process.env.PUPPETEER_EXECUTABLE_PATH;
 
@@ -123,6 +138,7 @@ export async function initWhatsAppWebClient() {
       state.status = "CONNECTED";
       state.qrCodeDataUrl = null;
       state.rawQrText = null;
+      state.pairingCode = null;
       if (waClient?.info?.wid?.user) {
         state.botPhone = `+${waClient.info.wid.user}`;
       } else {
