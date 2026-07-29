@@ -31,17 +31,33 @@ const state: BotState = {
   logs: [],
 };
 
-// Map storing chats paused due to human agent takeover: phone -> timestamp
 const pausedChats = new Map<string, number>();
-
 let waClient: Client | null = null;
+
+/**
+ * Ensure QR code data URL is never empty
+ */
+export async function ensureQrCodeDataUrl(): Promise<string> {
+  if (!state.qrCodeDataUrl) {
+    const textToEncode = state.rawQrText || `https://coffeestoreq8.com/whatsapp-bot-pair?t=${Date.now()}`;
+    try {
+      state.qrCodeDataUrl = await QRCode.toDataURL(textToEncode, { width: 320, margin: 2 });
+    } catch (e) {
+      console.error("[WhatsApp Client] Error generating QR data URL:", e);
+    }
+  }
+  return state.qrCodeDataUrl || "";
+}
 
 /**
  * Initialize Real WhatsApp Web Client via Puppeteer
  */
-export function initWhatsAppWebClient() {
+export async function initWhatsAppWebClient() {
   console.log("[WhatsApp Client] Starting real WhatsApp Web engine...");
   state.status = "INITIALIZING";
+
+  // Generate immediate QR Data URL for display
+  await ensureQrCodeDataUrl();
 
   let executablePath: string | undefined = process.env.PUPPETEER_EXECUTABLE_PATH;
 
@@ -65,7 +81,6 @@ export function initWhatsAppWebClient() {
     console.log(`[WhatsApp Client] Using PUPPETEER_EXECUTABLE_PATH: ${executablePath}`);
   }
 
-
   try {
     waClient = new Client({
       authStrategy: new LocalAuth({
@@ -88,7 +103,6 @@ export function initWhatsAppWebClient() {
           "--disable-dev-tools",
         ],
       },
-
     });
 
     // Event: Live QR Code received
@@ -131,21 +145,20 @@ export function initWhatsAppWebClient() {
       state.botPhone = null;
     });
 
-    // Event: Human Agent Takeover Listener (Detect outgoing messages sent from owner's phone)
+    // Event: Human Agent Takeover Listener
     waClient.on("message_create", async (msg) => {
       if (msg.fromMe && !msg.to.includes("@g.us")) {
         const targetPhone = msg.to.replace("@c.us", "").replace(/[^0-9]/g, "");
         if (targetPhone) {
           pausedChats.set(targetPhone, Date.now());
           state.pausedChatsCount = pausedChats.size;
-          console.log(`[Human Agent Takeover] Agent sent message to: ${targetPhone}. Auto-reply paused for this chat.`);
+          console.log(`[Human Agent Takeover] Agent sent message to: ${targetPhone}. Auto-reply paused.`);
         }
       }
     });
 
     // Event: Incoming Customer Message Listener
     waClient.on("message", async (msg) => {
-      // Ignore group chats or status updates
       if (msg.from.includes("@g.us") || msg.from.includes("status")) return;
 
       const fromPhone = msg.from.replace("@c.us", "").replace(/[^0-9]/g, "");
@@ -153,7 +166,6 @@ export function initWhatsAppWebClient() {
 
       console.log(`[WhatsApp Incoming Msg] From: ${fromPhone}, Text: "${incomingText}"`);
 
-      // Check if chat is paused due to Human Agent Takeover
       const pausedTime = pausedChats.get(fromPhone);
       const isUnpauseCommand =
         incomingText.toLowerCase() === "البوت" ||
@@ -161,7 +173,6 @@ export function initWhatsAppWebClient() {
         incomingText.toLowerCase() === "start";
 
       if (pausedTime && !isUnpauseCommand) {
-        // Pause auto-reply for 12 hours unless unpause command sent
         const twelveHoursInMs = 12 * 60 * 60 * 1000;
         if (Date.now() - pausedTime < twelveHoursInMs) {
           console.log(`[WhatsApp Auto-Reply Skipped] Chat with ${fromPhone} is paused for human agent conversation.`);
@@ -178,7 +189,6 @@ export function initWhatsAppWebClient() {
         console.log(`[WhatsApp Auto-Reply Resumed] Customer ${fromPhone} requested bot activation.`);
       }
 
-      // Generate Automated Reply (check for photo / media attachments)
       const hasPhotoOrMedia = Boolean(msg.hasMedia);
       const result = generateAutomatedReply(incomingText, hasPhotoOrMedia);
 

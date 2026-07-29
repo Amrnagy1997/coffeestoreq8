@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { getBotConfig, saveBotConfig } from "../bot/configManager";
-import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus } from "../bot/whatsappClient";
+import { getBotState, initWhatsAppWebClient, handleIncomingMessage, setBotStatus, ensureQrCodeDataUrl } from "../bot/whatsappClient";
 
 // Global process error catchers to prevent crash on minor puppeteer warnings
 process.on("uncaughtException", (err) => {
@@ -32,12 +32,14 @@ initWhatsAppWebClient();
 
 // API: Get Bot Status & Logs
 app.get("/api/status", async (req, res) => {
+  await ensureQrCodeDataUrl();
   const currentState = getBotState();
   res.json({
     success: true,
     state: currentState,
   });
 });
+
 
 // API: Toggle Connect Status (for simulation)
 app.post("/api/status/toggle", (req, res) => {
