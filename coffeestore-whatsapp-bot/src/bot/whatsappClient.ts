@@ -172,7 +172,12 @@ export async function initWhatsAppWebClient() {
 
     waClient.on("authenticated", () => {
       console.log("[WhatsApp Client] Session authenticated!");
+      state.status = "CONNECTED";
+      state.qrCodeDataUrl = null;
+      state.rawQrText = null;
+      state.botPhone = "مرتبط بالواتساب التجاري";
     });
+
 
     waClient.on("auth_failure", (msg) => {
       console.error("[WhatsApp Client] Auth failure:", msg);
