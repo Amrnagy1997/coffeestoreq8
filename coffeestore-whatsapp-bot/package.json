@@ -4,7 +4,8 @@
   "description": "Standalone Automated WhatsApp Business Bot for CoffeeStore Q8",
   "main": "dist/server/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-public",
+    "copy-public": "mkdir -p dist/public && cp -r src/public/* dist/public/",
     "start": "node dist/server/index.js",
     "dev": "tsx watch src/server/index.ts"
   },
@@ -24,3 +25,4 @@
     "typescript": "^5.6.2"
   }
 }
+
