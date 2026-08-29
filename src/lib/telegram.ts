@@ -12,7 +12,7 @@ export async function sendTelegramOrderNotification(order: {
     variantName?: string | null;
   }[];
 }) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || "8943207136:AAFVbI4iIJQDJm5Gy-S4JfkOqaM0meWbZb8";
   const chatId = process.env.TELEGRAM_CHAT_ID || "1441536109";
 
   if (!botToken) {

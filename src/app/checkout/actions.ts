@@ -48,7 +48,7 @@ export async function createOrder(data: {
     console.log("Order created successfully:", order.id);
 
     // إرسال إشعار فوري إلى تيليجرام
-    sendTelegramOrderNotification({
+    await sendTelegramOrderNotification({
       id: order.id,
       customerName: order.customerName,
       customerPhone: order.customerPhone,
@@ -61,7 +61,7 @@ export async function createOrder(data: {
         price: i.price,
         variantName: i.variantName,
       })),
-    }).catch((err) => console.error("Telegram notification async error:", err));
+    });
 
     revalidatePath("/admin/orders");
     return { success: true, orderId: order.id };

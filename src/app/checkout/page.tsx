@@ -73,10 +73,35 @@ export default function CheckoutPage() {
     return `*New Order from CoffeeStore Q8*\n\n*Customer Info:*\n- Name: ${formData.name}\n- Phone: ${formData.phone}\n- Address: ${formData.address}\n\n*Order Details:*\n${items}\n\n*Subtotal:* ${subtotalText}\n*Delivery:* ${deliveryText}\n*Total Price:* ${grandTotalText}${preOrderNoticeText}\n\n_Generated via coffeestoreq8.com_`;
   };
 
-  const handleCopy = () => {
+  const saveOrderToDatabase = async () => {
+    const deliveryFee = currency === "KWD" ? 2 : 12;
+    try {
+      return await createOrder({
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        customerAddress: formData.address,
+        totalPrice: cartTotal + deliveryFee,
+        instagramMessage: generateMessage(),
+        items: cart.map((item) => ({
+          productId: item.id || "unknown",
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          variantId: item.variantId,
+          variantName: item.variantName,
+        })),
+      });
+    } catch (error) {
+      console.error("Order save error:", error);
+      return { success: false };
+    }
+  };
+
+  const handleCopy = async () => {
     navigator.clipboard.writeText(generateMessage());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+    await saveOrderToDatabase();
   };
 
   const handleSendInstagram = () => {
@@ -85,28 +110,8 @@ export default function CheckoutPage() {
 
   const confirmRedirect = async () => {
     setIsSubmitting(true);
-    const deliveryFee = currency === "KWD" ? 2 : 12;
     try {
-      const result = await createOrder({
-        customerName: formData.name,
-        customerPhone: formData.phone,
-        customerAddress: formData.address,
-        totalPrice: cartTotal + deliveryFee,
-        instagramMessage: generateMessage(),
-        items: cart.map(item => {
-          if (!item.id) {
-            console.warn("Item missing ID:", item);
-          }
-          return {
-            productId: item.id || "unknown",
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            variantId: item.variantId,
-            variantName: item.variantName
-          };
-        })
-      });
+      const result = await saveOrderToDatabase();
 
       if (result.success) {
         setOrderSuccess(true);
