@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { sendTelegramOrderNotification } from "@/lib/telegram";
 
 export async function createOrder(data: {
   customerName: string;
@@ -39,9 +40,29 @@ export async function createOrder(data: {
           })),
         },
       },
+      include: {
+        items: true,
+      },
     });
 
     console.log("Order created successfully:", order.id);
+
+    // إرسال إشعار فوري إلى تيليجرام
+    sendTelegramOrderNotification({
+      id: order.id,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone,
+      customerAddress: order.customerAddress,
+      totalPrice: order.totalPrice,
+      instagramMessage: order.instagramMessage,
+      items: order.items.map((i) => ({
+        name: i.name,
+        quantity: i.quantity,
+        price: i.price,
+        variantName: i.variantName,
+      })),
+    }).catch((err) => console.error("Telegram notification async error:", err));
+
     revalidatePath("/admin/orders");
     return { success: true, orderId: order.id };
   } catch (error: any) {
